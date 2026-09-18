@@ -86,10 +86,10 @@ export const InstallPwaButton: React.FC = () => {
       <button
         id="pwa-install-btn"
         onClick={handleInstallClick}
-        className="flex items-center space-x-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-all cursor-pointer animate-pulse hover:animate-none shrink-0"
+        className="flex items-center space-x-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100/90 text-emerald-800 border border-emerald-200/90 text-xs font-bold shadow-2xs transition-all cursor-pointer shrink-0 active:scale-[0.98]"
         title="Install Taizer Profit Book on this Device (Desktop or Mobile)"
       >
-        <Download className="w-3.5 h-3.5 text-white" />
+        <Download className="w-3.5 h-3.5 text-emerald-600" />
         <span className="hidden xs:inline sm:inline">Install App</span>
         <span className="xs:hidden sm:hidden">Install</span>
       </button>

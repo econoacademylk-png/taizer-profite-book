@@ -186,91 +186,82 @@ export default function App() {
   return (
     <div className="min-h-screen bg-stone-100 text-stone-800 flex flex-col font-sans selection:bg-stone-200">
       {/* Top Navbar */}
-      <header className="bg-white border-b border-stone-200 sticky top-0 z-30 shadow-xs">
-        <div className="max-w-6xl mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between">
-          {/* Brand Logo & Name */}
-          <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab('home')}>
+      <header className="bg-white/95 backdrop-blur-md border-b border-stone-200/90 sticky top-0 z-30 shadow-2xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-15 sm:h-16 flex items-center justify-between gap-3 sm:gap-6">
+          {/* Left: Brand Logo */}
+          <div className="flex items-center space-x-3 cursor-pointer shrink-0" onClick={() => setActiveTab('home')}>
             <TaizerLogo size="md" showText={true} />
-            <div className="hidden lg:flex items-center text-[11px] text-stone-500 pl-3 border-l border-stone-200 space-x-1">
+            <div className="hidden 2xl:flex items-center text-[11px] text-stone-500 pl-3 border-l border-stone-200 space-x-1.5">
               <Clock className="w-3.5 h-3.5 text-emerald-600" />
-              <span>{currentTimeStr || 'Loading time...'}</span>
+              <span className="font-mono text-[11px] text-stone-600">{currentTimeStr || ''}</span>
             </div>
-            {isCloudConnected && (
-              <div
-                className="hidden xl:flex items-center space-x-1.5 text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 rounded-full shadow-2xs"
-                title="Connected to MongoDB Atlas: taizer_profit_book"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span>MongoDB Atlas</span>
-              </div>
-            )}
           </div>
 
-          {/* Center / Right: Desktop Tab Navigation & Profile Button */}
-          <div className="flex items-center space-x-2 sm:space-x-3">
-            {/* Desktop Tab Navigation */}
-            <nav className="hidden sm:flex items-center bg-stone-100 p-1 rounded-xl border border-stone-200/80">
-              <button
-                id="nav-home-tab"
-                onClick={() => setActiveTab('home')}
-                className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  activeTab === 'home'
-                    ? 'bg-white text-stone-900 shadow-xs'
-                    : 'text-stone-600 hover:text-stone-900'
-                }`}
-              >
-                <Calculator className="w-4 h-4" />
-                <span>Home</span>
-              </button>
-              <button
-                id="nav-sheet-tab"
-                onClick={() => setActiveTab('sheet')}
-                className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  activeTab === 'sheet'
-                    ? 'bg-white text-stone-900 shadow-xs'
-                    : 'text-stone-600 hover:text-stone-900'
-                }`}
-              >
-                <FileSpreadsheet className="w-4 h-4" />
-                <span>Target Sheet</span>
-              </button>
-              <button
-                id="nav-calendar-tab"
-                onClick={() => setActiveTab('calendar')}
-                className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  activeTab === 'calendar'
-                    ? 'bg-white text-stone-900 shadow-xs'
-                    : 'text-stone-600 hover:text-stone-900'
-                }`}
-              >
-                <CalendarIcon className="w-4 h-4 text-emerald-600" />
-                <span>Calendar</span>
-              </button>
+          {/* Center: Desktop Navigation Tabs (Sleek Segmented Pill) */}
+          <nav className="hidden md:flex items-center bg-stone-100/90 p-1 rounded-2xl border border-stone-200/80 shadow-2xs">
+            <button
+              id="nav-home-tab"
+              onClick={() => setActiveTab('home')}
+              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                activeTab === 'home'
+                  ? 'bg-white text-stone-950 shadow-xs font-bold'
+                  : 'text-stone-600 hover:text-stone-950 hover:bg-white/50'
+              }`}
+            >
+              <Calculator className={`w-4 h-4 ${activeTab === 'home' ? 'text-emerald-600' : 'text-stone-500'}`} />
+              <span>Home</span>
+            </button>
+            <button
+              id="nav-sheet-tab"
+              onClick={() => setActiveTab('sheet')}
+              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                activeTab === 'sheet'
+                  ? 'bg-white text-stone-950 shadow-xs font-bold'
+                  : 'text-stone-600 hover:text-stone-950 hover:bg-white/50'
+              }`}
+            >
+              <FileSpreadsheet className={`w-4 h-4 ${activeTab === 'sheet' ? 'text-emerald-600' : 'text-stone-500'}`} />
+              <span>Target Sheet</span>
+            </button>
+            <button
+              id="nav-calendar-tab"
+              onClick={() => setActiveTab('calendar')}
+              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                activeTab === 'calendar'
+                  ? 'bg-white text-stone-950 shadow-xs font-bold'
+                  : 'text-stone-600 hover:text-stone-950 hover:bg-white/50'
+              }`}
+            >
+              <CalendarIcon className={`w-4 h-4 ${activeTab === 'calendar' ? 'text-emerald-600' : 'text-stone-500'}`} />
+              <span>Calendar</span>
+            </button>
 
-              {/* Users Tab (Visible ONLY to Admin) */}
-              {isAdmin && (
-                <button
-                  id="nav-users-tab"
-                  onClick={() => setActiveTab('users')}
-                  className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                    activeTab === 'users'
-                      ? 'bg-stone-900 text-white shadow-xs'
-                      : 'text-stone-700 hover:text-stone-900 hover:bg-stone-200/70'
-                  }`}
-                  title="User Management & Approvals (Admin Only)"
-                >
-                  <UsersIcon className={`w-4 h-4 ${activeTab === 'users' ? 'text-emerald-400' : 'text-emerald-600'}`} />
-                  <span>Users</span>
-                  {pendingCount > 0 && (
-                    <span className="bg-amber-500 text-stone-950 font-black text-[10px] px-1.5 py-0.5 rounded-full leading-none animate-pulse shadow-xs">
-                      {pendingCount}
-                    </span>
-                  )}
-                </button>
-              )}
-            </nav>
+            {/* Users Tab (Visible ONLY to Admin) */}
+            {isAdmin && (
+              <button
+                id="nav-users-tab"
+                onClick={() => setActiveTab('users')}
+                className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === 'users'
+                    ? 'bg-stone-900 text-white shadow-xs'
+                    : 'text-stone-700 hover:text-stone-950 hover:bg-white/50'
+                }`}
+                title="User Management & Approvals (Admin Only)"
+              >
+                <UsersIcon className={`w-4 h-4 ${activeTab === 'users' ? 'text-emerald-400' : 'text-emerald-600'}`} />
+                <span>Users</span>
+                {pendingCount > 0 && (
+                  <span className="bg-amber-500 text-stone-950 font-black text-[10px] px-1.5 py-0.5 rounded-full leading-none animate-pulse shadow-xs">
+                    {pendingCount}
+                  </span>
+                )}
+              </button>
+            )}
+          </nav>
 
-            {/* PWA Install Button (Desktop & Mobile) */}
+          {/* Right: Actions (Install App, Profile, Sign Out / Login) */}
+          <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
+            {/* PWA Install Button */}
             <InstallPwaButton />
 
             {/* Profile & Wallet Status Badge or Login / Sign Out Buttons */}
@@ -279,7 +270,7 @@ export default function App() {
                 <button
                   id="header-profile-btn"
                   onClick={() => setIsProfileOpen(true)}
-                  className="flex items-center space-x-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-stone-50 hover:bg-stone-100 border border-stone-200/90 text-stone-800 transition-colors cursor-pointer"
+                  className="flex items-center space-x-2 px-2.5 sm:px-3 py-1.5 rounded-xl bg-stone-50 hover:bg-stone-100/90 border border-stone-200/90 text-stone-800 shadow-2xs transition-all cursor-pointer"
                   title="View Trader Profile"
                 >
                   <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-bold ${
@@ -309,7 +300,7 @@ export default function App() {
                   title="Sign Out"
                 >
                   <LogOut className="w-3.5 h-3.5 text-rose-600" />
-                  <span className="hidden sm:inline">Sign Out</span>
+                  <span className="hidden lg:inline">Sign Out</span>
                 </button>
               </div>
             ) : (
@@ -343,7 +334,7 @@ export default function App() {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 pb-28 sm:pb-12">
+      <main className="flex-1 pb-28 md:pb-12">
         {activeTab === 'home' ? (
           <HomeView
             transactions={transactions}
@@ -428,7 +419,7 @@ export default function App() {
       {/* Mobile Fixed Bottom Navigation Bar */}
       <nav
         id="mobile-bottom-navigation"
-        className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-stone-200/90 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] px-3 py-1.5 pb-safe"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-stone-200/90 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] px-3 py-1.5 pb-safe"
       >
         <div className={`grid gap-1 max-w-sm mx-auto ${isAdmin ? 'grid-cols-4' : 'grid-cols-3'}`}>
           {/* Mobile Home Button */}
@@ -499,7 +490,7 @@ export default function App() {
       </nav>
 
       {/* Footer (Desktop only or non-obstructive) */}
-      <footer className="hidden sm:block border-t border-stone-200 bg-white py-4 text-center text-xs text-stone-500">
+      <footer className="hidden md:block border-t border-stone-200 bg-white py-4 text-center text-xs text-stone-500">
         <div className="flex items-center justify-center space-x-2">
           <TaizerLogo size="sm" showText={false} />
           <span className="font-semibold text-stone-700">Taizer Crypto</span>
