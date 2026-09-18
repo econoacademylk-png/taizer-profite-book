@@ -23,23 +23,17 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
   canDismiss = false,
   initialMode = 'signup',
 }) => {
-  const [mode, setMode] = useState<'login' | 'signup'>(
-    currentProfile?.isRegistered ? 'login' : initialMode
-  );
+  const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
 
-  // Sign Up State
-  const [username, setUsername] = useState(currentProfile?.name || '');
-  const [email, setEmail] = useState(currentProfile?.email || '');
-  const [password, setPassword] = useState(currentProfile?.password || '');
+  // Sign Up State - Always start clean for new account creation
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [walletStr, setWalletStr] = useState(
-    currentProfile ? String(currentProfile.walletBalance) : '20'
-  );
+  const [walletStr, setWalletStr] = useState('20');
 
-  // Login State
-  const [loginIdentifier, setLoginIdentifier] = useState(
-    currentProfile?.name || currentProfile?.email || ''
-  );
+  // Login State - Always start clean
+  const [loginIdentifier, setLoginIdentifier] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [showLoginPassword, setShowLoginPassword] = useState(false);
 
@@ -47,19 +41,17 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    if (currentProfile) {
-      setUsername(currentProfile.name);
-      setEmail(currentProfile.email || '');
-      setPassword(currentProfile.password || '');
-      setWalletStr(String(currentProfile.walletBalance));
-      setLoginIdentifier(currentProfile.email || currentProfile.name || '');
-    }
     if (isOpen) {
       setMode(initialMode);
       setError(null);
       setSuccessMsg(null);
+      setUsername('');
+      setEmail('');
+      setPassword('');
+      setWalletStr('20');
+      setLoginPassword('');
     }
-  }, [currentProfile, isOpen, initialMode]);
+  }, [isOpen, initialMode]);
 
   if (!isOpen) return null;
 

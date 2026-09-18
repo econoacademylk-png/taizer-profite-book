@@ -8,8 +8,17 @@ try {
   // ignore if not supported in environment
 }
 
-export const ADMIN_EMAIL = 'supundilshan38@gmail.com';
+export const ADMIN_EMAILS = [
+  'supundilshan38@gmail.com',
+  'supundilshan358@gmail.com',
+];
+export const ADMIN_EMAIL = 'supundilshan358@gmail.com';
 export const ADMIN_PASSWORD = 'addi';
+
+export function isAdminEmail(email?: string): boolean {
+  if (!email) return false;
+  return ADMIN_EMAILS.some((e) => e.toLowerCase() === email.trim().toLowerCase());
+}
 
 const DEFAULT_URI = 'mongodb+srv://supundilshan358_db_user:ZaAoLY6pOTlsPg5D@cluster0.ouxm37c.mongodb.net/taizer_profit_book?retryWrites=true&w=majority&appName=Cluster0';
 const uri = process.env.MONGODB_URI || DEFAULT_URI;
@@ -30,13 +39,10 @@ export async function connectToDatabase(): Promise<Db> {
 
     await client.connect();
     db = client.db('taizer_profit_book');
-    console.log('[MongoDB] Connected to database: taizer_profit_book');
-
-    // Create indexes and seed admin
     await seedAdmin();
     return db;
-  } catch (err: any) {
-    console.error('[MongoDB] Connection error:', err.message);
+  } catch (err) {
+    console.error('Failed to connect to MongoDB Atlas:', err);
     throw err;
   }
 }
@@ -46,7 +52,10 @@ export async function seedAdmin() {
   const usersCol = db.collection('users');
 
   const admin = await usersCol.findOne({
-    email: ADMIN_EMAIL.toLowerCase(),
+    $or: [
+      { role: 'admin' },
+      { email: { $in: ADMIN_EMAILS.map((e) => e.toLowerCase()) } },
+    ],
   });
 
   if (!admin) {
@@ -67,7 +76,7 @@ export async function seedAdmin() {
     console.log('[MongoDB] Seeded default Admin account:', ADMIN_EMAIL);
   } else if (admin.password !== ADMIN_PASSWORD || admin.role !== 'admin' || admin.status !== 'approved') {
     await usersCol.updateOne(
-      { email: ADMIN_EMAIL.toLowerCase() },
+      { _id: admin._id },
       { $set: { password: ADMIN_PASSWORD, role: 'admin', status: 'approved' } }
     );
   }

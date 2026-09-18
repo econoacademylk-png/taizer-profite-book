@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'http';
-import { connectToDatabase, ADMIN_EMAIL, ADMIN_PASSWORD } from './db.ts';
+import { connectToDatabase, ADMIN_EMAIL, ADMIN_EMAILS, isAdminEmail, ADMIN_PASSWORD } from './db.ts';
 
 function sendJson(res: ServerResponse, status: number, data: any) {
   res.statusCode = status;
@@ -24,13 +24,18 @@ async function parseJsonBody(req: IncomingMessage): Promise<any> {
   });
 }
 
-export async function syncUserRealBalance(db: any, userId: string) {
-  if (!userId) return null;
+export async function syncUserRealBalance(db: any, rawUserId: string) {
+  if (!rawUserId) return null;
+  const userId = decodeURIComponent(rawUserId);
   const usersCol = db.collection('users');
   const txCol = db.collection('transactions');
 
   const user = await usersCol.findOne({
-    $or: [{ id: userId }, { email: userId }],
+    $or: [
+      { id: userId },
+      { email: userId.toLowerCase() },
+      { email: { $regex: new RegExp(`^${userId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } },
+    ],
   });
   if (!user) return null;
 
@@ -61,12 +66,12 @@ export async function syncUserRealBalance(db: any, userId: string) {
         totalIncome: Number(totalIncome.toFixed(2)),
         totalLoss: Number(totalLoss.toFixed(2)),
         totalTrades: userTxs.length,
-        updatedAt: new Date(),
       },
     }
   );
 
   return {
+    ...user,
     currentRealBalance,
     netProfit,
     totalIncome: Number(totalIncome.toFixed(2)),
@@ -149,7 +154,7 @@ export async function handleApiRequest(
       const body = await parseJsonBody(req);
       const cleanEmail = (body.email || '').trim().toLowerCase();
 
-      if (cleanEmail === ADMIN_EMAIL.toLowerCase()) {
+      if (isAdminEmail(cleanEmail)) {
         sendJson(res, 400, { success: false, message: 'This email is reserved for the System Administrator.' });
         return true;
       }
@@ -184,7 +189,7 @@ export async function handleApiRequest(
       await usersCol.insertOne(newUser);
       sendJson(res, 201, {
         success: true,
-        message: 'Registration submitted! Your account is pending Admin approval. You will be able to log in once Admin (supundilshan38@gmail.com) approves your request.',
+        message: `Registration submitted! Your account is pending Admin approval. You will be able to log in once Admin (${ADMIN_EMAIL}) approves your request.`,
         user: newUser,
       });
       return true;
@@ -273,12 +278,17 @@ export async function handleApiRequest(
     // DELETE /api/users/:id
     const deleteMatch = pathname.match(/^\/api\/users\/([^/]+)$/);
     if (deleteMatch && method === 'DELETE') {
-      const userId = deleteMatch[1];
+      const rawUserId = deleteMatch[1];
+      const userId = decodeURIComponent(rawUserId);
       const target: any = await usersCol.findOne({
-        $or: [{ id: userId }, { email: userId }],
+        $or: [
+          { id: userId },
+          { email: userId.toLowerCase() },
+          { email: { $regex: new RegExp(`^${userId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } },
+        ],
       });
 
-      if (target && target.role !== 'admin') {
+      if (target && target.role !== 'admin' && !isAdminEmail(target.email)) {
         await usersCol.deleteOne({ _id: target._id });
         await txCol.deleteMany({ userId: target.id || userId });
         await targetsCol.deleteMany({ userId: target.id || userId });
@@ -290,7 +300,8 @@ export async function handleApiRequest(
     // PUT /api/users/:id (Update Profile)
     const updateMatch = pathname.match(/^\/api\/users\/([^/]+)$/);
     if (updateMatch && method === 'PUT') {
-      const userId = updateMatch[1];
+      const rawUserId = updateMatch[1];
+      const userId = decodeURIComponent(rawUserId);
       const body = await parseJsonBody(req);
 
       const updateFields: any = {};
@@ -302,7 +313,13 @@ export async function handleApiRequest(
       if (body.monthNumber) updateFields.monthNumber = body.monthNumber;
 
       await usersCol.updateOne(
-        { $or: [{ id: userId }, { email: userId }] },
+        {
+          $or: [
+            { id: userId },
+            { email: userId.toLowerCase() },
+            { email: { $regex: new RegExp(`^${userId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } },
+          ],
+        },
         { $set: updateFields }
       );
       await syncUserRealBalance(db, userId);

@@ -8,7 +8,7 @@ interface ProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   profile: UserProfile;
-  onSaveProfile: (updatedProfile: UserProfile) => void;
+  onSaveProfile: (updatedProfile: UserProfile) => void | Promise<void>;
   onSignOut: () => void;
 }
 
@@ -24,13 +24,16 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   const [email, setEmail] = useState(profile.email || '');
   const [walletStr, setWalletStr] = useState(String(profile.walletBalance));
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  // Sync state if profile changes
+  // Sync state if profile changes from external source ONLY when not editing
   useEffect(() => {
-    setName(profile.name);
-    setEmail(profile.email || '');
-    setWalletStr(String(profile.walletBalance));
-  }, [profile]);
+    if (!isEditing) {
+      setName(profile.name);
+      setEmail(profile.email || '');
+      setWalletStr(String(profile.walletBalance));
+    }
+  }, [profile.name, profile.email, profile.walletBalance, isEditing]);
 
   // Lock background scroll when modal is open
   useEffect(() => {
@@ -51,7 +54,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   const previewDailyTarget = calculateDailyTarget(currentParsedWallet);
   const tierInfo = getTierInfo(currentParsedWallet);
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     const finalWallet = Math.max(10, parseFloat(walletStr) || 10);
     const finalDailyTarget = calculateDailyTarget(finalWallet);
@@ -64,12 +67,17 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
       dailyTarget: finalDailyTarget,
     };
 
-    onSaveProfile(updated);
-    setSavedSuccess(true);
-    setIsEditing(false);
-    setTimeout(() => {
-      setSavedSuccess(false);
-    }, 2500);
+    setIsSaving(true);
+    try {
+      await onSaveProfile(updated);
+      setSavedSuccess(true);
+      setIsEditing(false);
+      setTimeout(() => {
+        setSavedSuccess(false);
+      }, 2500);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const displayName = profile.name || 'Trader';
@@ -215,9 +223,10 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                 <div className="pt-2 flex items-center space-x-2">
                   <button
                     type="submit"
-                    className="flex-1 py-2 px-3 bg-stone-950 hover:bg-stone-800 text-white rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer text-center"
+                    disabled={isSaving}
+                    className="flex-1 py-2 px-3 bg-stone-950 hover:bg-stone-800 text-white rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer text-center disabled:opacity-60"
                   >
-                    Save Changes
+                    {isSaving ? 'Saving Changes...' : 'Save Changes'}
                   </button>
                   <button
                     type="button"

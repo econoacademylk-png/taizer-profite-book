@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Calculator,
   FileSpreadsheet,
@@ -30,6 +30,8 @@ import {
   getCurrentDateString,
   getPendingUsersCount,
   ADMIN_EMAIL,
+  isAdminEmail,
+  loadAllUsers,
   saveAllUsers,
 } from './utils/storage';
 import { HomeView } from './components/HomeView';
@@ -65,22 +67,29 @@ export default function App() {
   // Check if current user is admin
   const isAdmin = Boolean(
     profile?.isRegistered &&
-      (profile.role === 'admin' || profile.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase())
+      (profile.role === 'admin' || isAdminEmail(profile.email))
   );
 
-  // Real live wallet balance across all trades
-  const totalNetProfit = transactions.reduce(
-    (sum, t) => sum + (t.type === 'income' ? t.amount : -t.amount),
-    0
-  );
-  const liveWalletBalance = Number(Math.max(0, (profile?.walletBalance || 10) + totalNetProfit).toFixed(2));
-  const liveProfile: UserProfile | null = (profile && profile.isRegistered)
-    ? {
-        ...profile,
-        currentRealBalance: liveWalletBalance,
-        netProfit: totalNetProfit,
-      }
-    : null;
+  // Real live wallet balance across all trades (memoized to prevent re-render flickers)
+  const totalNetProfit = useMemo(() => {
+    return transactions.reduce(
+      (sum, t) => sum + (t.type === 'income' ? t.amount : -t.amount),
+      0
+    );
+  }, [transactions]);
+
+  const liveWalletBalance = useMemo(() => {
+    return Number(Math.max(0, (profile?.walletBalance || 10) + totalNetProfit).toFixed(2));
+  }, [profile?.walletBalance, totalNetProfit]);
+
+  const liveProfile = useMemo<UserProfile | null>(() => {
+    if (!profile || !profile.isRegistered) return null;
+    return {
+      ...profile,
+      currentRealBalance: liveWalletBalance,
+      netProfit: totalNetProfit,
+    };
+  }, [profile, liveWalletBalance, totalNetProfit]);
 
   const [isCloudConnected, setIsCloudConnected] = useState<boolean>(false);
 
@@ -200,24 +209,44 @@ export default function App() {
   }, []);
 
   // Save profile handler
-  const handleSaveProfile = (newProfile: UserProfile) => {
+  const handleSaveProfile = async (newProfile: UserProfile) => {
     setProfile(newProfile);
     saveUserProfile(newProfile);
     setIsRegisterOpen(false);
+
+    // Also update this profile in all registered users list in local storage
+    const allUsers = loadAllUsers();
+    const updatedUsers = allUsers.map((u) => {
+      const isMatch =
+        (newProfile.id && u.id === newProfile.id) ||
+        (newProfile.email && u.email.toLowerCase() === newProfile.email.toLowerCase());
+      return isMatch ? { ...u, ...newProfile } : u;
+    });
+    saveAllUsers(updatedUsers);
     setPendingCount(getPendingUsersCount());
 
     // Sync updated wallet balance, target, name to MongoDB Atlas
     const identifier = newProfile.id || newProfile.email;
     if (identifier) {
-      updateProfileOnCloud(identifier, {
-        name: newProfile.name,
-        walletBalance: newProfile.walletBalance,
-        dailyTarget: newProfile.dailyTarget,
-        startDate: newProfile.startDate,
-        monthNumber: newProfile.monthNumber,
-      }).then((ok) => {
-        if (ok) setIsCloudConnected(true);
-      });
+      try {
+        const ok = await updateProfileOnCloud(identifier, {
+          name: newProfile.name,
+          email: newProfile.email,
+          walletBalance: newProfile.walletBalance,
+          dailyTarget: newProfile.dailyTarget,
+          startDate: newProfile.startDate,
+          monthNumber: newProfile.monthNumber,
+        });
+        if (ok) {
+          setIsCloudConnected(true);
+          const cloudUsers = await fetchUsersFromCloud();
+          if (cloudUsers && Array.isArray(cloudUsers)) {
+            saveAllUsers(cloudUsers);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to sync updated profile to MongoDB Atlas', err);
+      }
     }
   };
 

@@ -11,8 +11,18 @@ import {
   fetchUsersFromCloud,
 } from './api';
 
-export const ADMIN_EMAIL = 'supundilshan38@gmail.com';
+export const ADMIN_EMAILS = [
+  'supundilshan38@gmail.com',
+  'supundilshan358@gmail.com',
+];
+export const ADMIN_EMAIL = 'supundilshan358@gmail.com';
 export const ADMIN_PASSWORD = 'addi';
+
+export function isAdminEmail(email?: string): boolean {
+  if (!email) return false;
+  const clean = email.trim().toLowerCase();
+  return ADMIN_EMAILS.some((e) => e.toLowerCase() === clean);
+}
 
 const STORAGE_KEY = 'income_target_sheet_transactions';
 const TARGET_STORAGE_KEY = 'income_target_sheet_goals';
@@ -103,14 +113,14 @@ export function loadAllUsers(): UserProfile[] {
 
     // Ensure default admin account exists and has latest credentials
     const adminIndex = users.findIndex(
-      (u) => u.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()
+      (u) => isAdminEmail(u.email) || u.role === 'admin'
     );
 
     if (adminIndex === -1) {
       users.unshift(getAdminSeedUser());
       saveAllUsers(users);
     } else {
-      // Ensure password and role are in sync
+      // Ensure password and role are in sync without overriding custom wallet balance or target
       if (users[adminIndex].password !== ADMIN_PASSWORD || users[adminIndex].role !== 'admin' || users[adminIndex].status !== 'approved') {
         users[adminIndex] = {
           ...users[adminIndex],
@@ -150,7 +160,7 @@ export function registerNewUser(data: {
   const cleanEmail = data.email.trim().toLowerCase();
 
   // Check if admin email
-  if (cleanEmail === ADMIN_EMAIL.toLowerCase()) {
+  if (isAdminEmail(cleanEmail)) {
     return {
       success: false,
       message: 'This email is reserved for the System Administrator.',
@@ -226,13 +236,13 @@ export function authenticateUser(
     if (matched.status === 'pending') {
       return {
         success: false,
-        message: 'Your account is pending approval by the Admin (supundilshan38@gmail.com). Please wait until approved.',
+        message: `Your account is pending approval by the Admin (${ADMIN_EMAIL}). Please wait until approved.`,
       };
     }
     if (matched.status === 'rejected') {
       return {
         success: false,
-        message: 'Your account request was declined by the Admin. Please contact supundilshan38@gmail.com for assistance.',
+        message: `Your account request was declined by the Admin. Please contact ${ADMIN_EMAIL} for assistance.`,
       };
     }
   }
