@@ -202,9 +202,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
       {/* Main Grid: On mobile, Calculator is FIRST (order-1). Banner is SECOND (order-2). Summary is THIRD (order-3).
           On desktop, Banner is TOP (col-span-12, order-1). Calculator is LEFT (col-span-7, order-2). Summary is RIGHT (col-span-5, order-3). */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-6 items-start">
+      <div className="flex flex-col lg:grid lg:grid-cols-12 gap-3.5 sm:gap-6 items-start w-full">
         {/* Left / Main: Calculator Section (Order 1 on mobile, Col-span-7 on desktop) */}
-        <div className="order-1 lg:order-2 lg:col-span-7 bg-white rounded-2xl border border-stone-200 shadow-xs p-3 sm:p-5 space-y-2.5 sm:space-y-4">
+        <div className="w-full order-1 lg:order-2 lg:col-span-7 bg-white rounded-2xl border border-stone-200 shadow-xs p-3 sm:p-5 space-y-2.5 sm:space-y-4">
           {/* Header section - Hidden on mobile for maximum space efficiency */}
           <div className="hidden sm:flex flex-col sm:flex-row sm:items-center justify-between pb-2.5 border-b border-stone-100 gap-3">
             <div className="flex items-center space-x-2.5">
@@ -327,7 +327,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </div>
 
         {/* Daily Target Progress & Profile Overview Banner (Order 2 on mobile, Top col-span-12 on desktop) */}
-        <div id="daily-target-banner" className="order-2 lg:order-1 lg:col-span-12 bg-white rounded-2xl border border-stone-200 shadow-xs p-3.5 sm:p-5 space-y-3.5">
+        <div id="daily-target-banner" className="w-full order-2 lg:order-1 lg:col-span-12 bg-white rounded-2xl border border-stone-200 shadow-xs p-3.5 sm:p-5 space-y-3.5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-100">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 rounded-xl bg-stone-900 text-white flex items-center justify-center font-black shrink-0">
@@ -492,7 +492,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </div>
 
         {/* Right / Side: Today's Summary & Quick Log (Order 3 on mobile, Col-span-5 on desktop) */}
-        <div className="order-3 lg:order-3 lg:col-span-5 space-y-4 sm:space-y-6">
+        <div className="w-full order-3 lg:order-3 lg:col-span-5 space-y-4 sm:space-y-6">
           {/* Today Overview Card */}
           <div className="bg-white rounded-2xl border border-stone-200 shadow-xs p-3.5 sm:p-6 space-y-3.5 sm:space-y-4">
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
