@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Download, Smartphone, Monitor, CheckCircle2, X, Share } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { Download, Smartphone, CheckCircle2, X, Share } from 'lucide-react';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -49,6 +50,18 @@ export const InstallPwaButton: React.FC = () => {
     };
   }, []);
 
+  // Lock body scroll when iOS guide modal is open
+  useEffect(() => {
+    if (showIosGuide) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [showIosGuide]);
+
   // If running in standalone app mode, don't show install button
   if (isStandalone) return null;
 
@@ -81,21 +94,28 @@ export const InstallPwaButton: React.FC = () => {
         <span className="xs:hidden sm:hidden">Install</span>
       </button>
 
-      {/* Installed Success Toast */}
-      {installedSuccess && (
-        <div className="fixed bottom-20 sm:bottom-6 right-4 z-50 p-4 rounded-2xl bg-stone-900 text-white shadow-2xl border border-emerald-500/50 flex items-center space-x-3">
+      {/* Installed Success Toast rendered in Portal to escape header z-index */}
+      {installedSuccess && typeof document !== 'undefined' && createPortal(
+        <div className="fixed bottom-20 sm:bottom-6 right-4 z-[100] p-4 rounded-2xl bg-stone-900 text-white shadow-2xl border border-emerald-500/50 flex items-center space-x-3 animate-in fade-in slide-in-from-bottom-2 duration-200">
           <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
           <div className="text-xs">
             <p className="font-bold text-emerald-400">App Installed Successfully!</p>
             <p className="text-stone-300">You can now open Taizer Crypto directly from your Home Screen or Desktop.</p>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {/* iOS Install Instruction Modal */}
-      {showIosGuide && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 sm:p-4 bg-stone-950/75 backdrop-blur-xs">
-          <div className="w-full max-w-sm bg-white rounded-3xl p-5 shadow-2xl space-y-4 border border-stone-200">
+      {/* iOS Install Instruction Modal rendered in Portal to escape header z-index */}
+      {showIosGuide && typeof document !== 'undefined' && createPortal(
+        <div
+          onClick={() => setShowIosGuide(false)}
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-stone-950/80 backdrop-blur-xs overflow-y-auto overscroll-contain animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm bg-white rounded-3xl p-5 shadow-2xl space-y-4 border border-stone-200 my-auto animate-in zoom-in-95 duration-150"
+          >
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
               <div className="flex items-center space-x-2">
                 <Smartphone className="w-5 h-5 text-emerald-600" />
@@ -103,13 +123,14 @@ export const InstallPwaButton: React.FC = () => {
               </div>
               <button
                 onClick={() => setShowIosGuide(false)}
-                className="p-1 rounded-full text-stone-400 hover:text-stone-700"
+                className="p-1 rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
+                title="Close"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="space-y-3 text-xs text-stone-600">
+            <div className="space-y-3.5 text-xs text-stone-600">
               <div className="flex items-start space-x-2.5">
                 <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center shrink-0 text-[11px]">
                   1
@@ -140,12 +161,13 @@ export const InstallPwaButton: React.FC = () => {
 
             <button
               onClick={() => setShowIosGuide(false)}
-              className="w-full py-2.5 rounded-xl bg-stone-900 text-white font-bold text-xs"
+              className="w-full py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 active:scale-[0.98] text-white font-bold text-xs shadow-xs transition-all cursor-pointer"
             >
               Got it!
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
