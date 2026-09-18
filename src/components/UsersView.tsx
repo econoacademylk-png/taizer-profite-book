@@ -43,7 +43,7 @@ interface UsersViewProps {
   onProfileUpdated?: (updated: UserProfile) => void;
 }
 
-export const UsersView: React.FC<UsersViewProps> = ({ onUserStatusChanged }) => {
+export const UsersView: React.FC<UsersViewProps> = ({ onUserStatusChanged, onProfileUpdated }) => {
   const [users, setUsers] = useState<UserProfile[]>(() => loadAllUsers());
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<'pending' | 'all' | 'approved' | 'rejected'>('pending');
@@ -55,9 +55,27 @@ export const UsersView: React.FC<UsersViewProps> = ({ onUserStatusChanged }) => 
       if (cloudUsers && Array.isArray(cloudUsers)) {
         setUsers(cloudUsers);
         saveAllUsers(cloudUsers);
+
+        // Sync currently logged-in user profile from MongoDB Atlas cloud database
+        const currentProfile = loadUserProfile();
+        if (currentProfile) {
+          const self = cloudUsers.find(
+            (u) =>
+              (currentProfile.id && u.id === currentProfile.id) ||
+              (currentProfile.email && u.email.toLowerCase() === currentProfile.email.toLowerCase())
+          );
+          if (self && onProfileUpdated) {
+            const syncedProfile = {
+              ...currentProfile,
+              ...self,
+            };
+            saveUserProfile(syncedProfile);
+            onProfileUpdated(syncedProfile);
+          }
+        }
       }
     });
-  }, []);
+  }, [onProfileUpdated]);
 
   const refreshUsers = () => {
     const updated = loadAllUsers();
@@ -67,6 +85,24 @@ export const UsersView: React.FC<UsersViewProps> = ({ onUserStatusChanged }) => 
       if (cloudUsers && Array.isArray(cloudUsers)) {
         setUsers(cloudUsers);
         saveAllUsers(cloudUsers);
+
+        // Sync currently logged-in user profile from MongoDB Atlas cloud database
+        const currentProfile = loadUserProfile();
+        if (currentProfile) {
+          const self = cloudUsers.find(
+            (u) =>
+              (currentProfile.id && u.id === currentProfile.id) ||
+              (currentProfile.email && u.email.toLowerCase() === currentProfile.email.toLowerCase())
+          );
+          if (self && onProfileUpdated) {
+            const syncedProfile = {
+              ...currentProfile,
+              ...self,
+            };
+            saveUserProfile(syncedProfile);
+            onProfileUpdated(syncedProfile);
+          }
+        }
       }
     });
   };

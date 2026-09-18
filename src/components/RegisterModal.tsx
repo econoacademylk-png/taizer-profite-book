@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { User, Mail, Lock, Eye, EyeOff, Wallet, X, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
 import { UserProfile } from '../types';
 import { calculateDailyTarget, getTierInfo, getCurrentDateString, registerNewUser, authenticateUser, ADMIN_EMAIL } from '../utils/storage';
+import { registerUserOnCloud, loginUserOnCloud } from '../utils/api';
 import { TaizerLogo } from './TaizerLogo';
 
 interface RegisterModalProps {
@@ -100,6 +101,14 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
       return;
     }
 
+    // Also register on MongoDB Atlas Cloud Database
+    registerUserOnCloud({
+      name: username.trim(),
+      email: email.trim(),
+      password,
+      walletBalance: walletNum,
+    }).catch(() => {});
+
     setSuccessMsg(
       'Registration submitted! Your account is pending Admin approval. You will be able to log in once Admin (supundilshan38@gmail.com) approves your request.'
     );
@@ -111,8 +120,8 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
     }, 4000);
   };
 
-  // Login Submit
-  const handleLogin = (e: React.FormEvent) => {
+  // Login Submit (checks MongoDB Atlas first for 100% cloud balance accuracy)
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccessMsg(null);
@@ -126,6 +135,29 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
       return;
     }
 
+    // 1. Try MongoDB Atlas cloud login first
+    try {
+      const cloudRes = await loginUserOnCloud(loginIdentifier.trim(), loginPassword);
+      if (cloudRes.success && cloudRes.user) {
+        onSaveProfile(cloudRes.user);
+        setSuccessMsg(
+          cloudRes.user.role === 'admin'
+            ? 'Welcome Admin! Logged in as Supun Dilshan.'
+            : 'Logged in successfully! Welcome back.'
+        );
+        setTimeout(() => {
+          if (onClose) onClose();
+        }, 600);
+        return;
+      } else if (cloudRes.message && !cloudRes.message.includes('Network error')) {
+        setError(cloudRes.message);
+        return;
+      }
+    } catch {
+      // Offline fallback
+    }
+
+    // 2. Local fallback if offline
     const res = authenticateUser(loginIdentifier.trim(), loginPassword);
 
     if (!res.success) {

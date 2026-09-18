@@ -29,6 +29,7 @@ import {
   getCurrentDateString,
   getPendingUsersCount,
   ADMIN_EMAIL,
+  saveAllUsers,
 } from './utils/storage';
 import { HomeView } from './components/HomeView';
 import { TargetSheetView } from './components/TargetSheetView';
@@ -45,6 +46,7 @@ import {
   deleteTransactionFromCloud,
   checkCloudHealth,
   updateProfileOnCloud,
+  fetchUsersFromCloud,
 } from './utils/api';
 
 export default function App() {
@@ -81,28 +83,89 @@ export default function App() {
 
   const [isCloudConnected, setIsCloudConnected] = useState<boolean>(false);
 
-  // Check MongoDB Atlas Cloud connection on start
+  // Check MongoDB Atlas Cloud connection on start and sync active profile
   useEffect(() => {
-    checkCloudHealth().then(setIsCloudConnected);
+    checkCloudHealth().then((connected) => {
+      setIsCloudConnected(connected);
+      if (connected) {
+        fetchUsersFromCloud().then((cloudUsers) => {
+          if (cloudUsers && Array.isArray(cloudUsers)) {
+            saveAllUsers(cloudUsers);
+            setPendingCount(getPendingUsersCount());
+
+            // Synchronize active profile directly with MongoDB Atlas cloud database
+            const current = loadUserProfile();
+            if (current) {
+              const matched = cloudUsers.find(
+                (u) =>
+                  (current.id && u.id === current.id) ||
+                  (current.email && u.email.toLowerCase() === current.email.toLowerCase())
+              );
+              if (matched) {
+                const synchronized: UserProfile = {
+                  ...current,
+                  walletBalance: matched.walletBalance,
+                  dailyTarget: matched.dailyTarget,
+                  name: matched.name || current.name,
+                  role: matched.role || current.role,
+                  status: matched.status || current.status,
+                  monthNumber: matched.monthNumber || current.monthNumber,
+                  startDate: matched.startDate || current.startDate,
+                };
+                setProfile(synchronized);
+                saveUserProfile(synchronized);
+              }
+            }
+          }
+        }).catch(() => {});
+      }
+    });
   }, []);
 
-  // Sync transactions whenever active profile changes
+  // Sync transactions and profile whenever active profile changes
   useEffect(() => {
     // 1. Instant local load (clean data without mocks)
     setTransactions(loadTransactions(profile?.id));
     setPendingCount(getPendingUsersCount());
 
     // 2. Sync with MongoDB Atlas Cloud
-    if (profile?.id) {
-      fetchTransactionsFromCloud(profile.id).then((cloudTxs) => {
-        if (cloudTxs && Array.isArray(cloudTxs)) {
-          setTransactions(cloudTxs);
-          saveTransactions(cloudTxs, profile.id);
-          setIsCloudConnected(true);
+    if (profile?.id || profile?.email) {
+      if (profile?.id) {
+        fetchTransactionsFromCloud(profile.id).then((cloudTxs) => {
+          if (cloudTxs && Array.isArray(cloudTxs)) {
+            setTransactions(cloudTxs);
+            saveTransactions(cloudTxs, profile.id);
+            setIsCloudConnected(true);
+          }
+        }).catch(() => {});
+      }
+
+      // Sync latest cloud profile fields (e.g. walletBalance, dailyTarget edited elsewhere)
+      fetchUsersFromCloud().then((cloudUsers) => {
+        if (cloudUsers && Array.isArray(cloudUsers)) {
+          saveAllUsers(cloudUsers);
+          const matched = cloudUsers.find(
+            (u) =>
+              (profile.id && u.id === profile.id) ||
+              (profile.email && u.email.toLowerCase() === profile.email.toLowerCase())
+          );
+          if (
+            matched &&
+            (matched.walletBalance !== profile.walletBalance || matched.dailyTarget !== profile.dailyTarget)
+          ) {
+            const synced: UserProfile = {
+              ...profile,
+              walletBalance: matched.walletBalance,
+              dailyTarget: matched.dailyTarget,
+              name: matched.name || profile.name,
+            };
+            setProfile(synced);
+            saveUserProfile(synced);
+          }
         }
       }).catch(() => {});
     }
-  }, [profile?.id]);
+  }, [profile?.id, profile?.email]);
 
   // Save to localStorage when transactions change
   useEffect(() => {
