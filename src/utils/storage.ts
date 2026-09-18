@@ -267,7 +267,7 @@ export function authenticateUser(
 export function updateUserStatus(userId: string, newStatus: UserStatus): void {
   const users = loadAllUsers();
   const updated = users.map((u) => {
-    if (u.id === userId) {
+    if (u.id === userId || (u.email && u.email.toLowerCase() === userId.toLowerCase())) {
       return { ...u, status: newStatus };
     }
     return u;
@@ -276,9 +276,16 @@ export function updateUserStatus(userId: string, newStatus: UserStatus): void {
 
   // If current logged-in user is this user, update active profile
   const current = loadUserProfile();
-  if (current && current.id === userId) {
+  if (current && (current.id === userId || (current.email && current.email.toLowerCase() === userId.toLowerCase()))) {
     saveUserProfile({ ...current, status: newStatus });
   }
+
+  // Cloud sync in background
+  try {
+    updateUserStatusOnCloud(userId, newStatus).catch((err) => {
+      console.error('Failed to sync user status update to cloud:', err);
+    });
+  } catch (_) {}
 }
 
 /**
@@ -286,19 +293,32 @@ export function updateUserStatus(userId: string, newStatus: UserStatus): void {
  */
 export function deleteUser(userId: string): boolean {
   const users = loadAllUsers();
-  const target = users.find((u) => u.id === userId);
-  if (!target || target.role === 'admin') return false; // cannot delete admin
+  const target = users.find((u) => u.id === userId || (u.email && u.email.toLowerCase() === userId.toLowerCase()));
+  if (!target || target.role === 'admin' || isAdminEmail(target.email)) return false; // cannot delete admin
 
-  const filtered = users.filter((u) => u.id !== userId);
+  const filtered = users.filter(
+    (u) => u.id !== target.id && (!u.email || u.email.toLowerCase() !== target.email.toLowerCase())
+  );
   saveAllUsers(filtered);
 
-  // Clear user's transactions
+  // Clear user's transactions and targets
   try {
-    localStorage.removeItem(`${STORAGE_KEY}_${userId}`);
-    localStorage.removeItem(`${TARGET_STORAGE_KEY}_${userId}`);
+    localStorage.removeItem(`${STORAGE_KEY}_${target.id}`);
+    localStorage.removeItem(`${TARGET_STORAGE_KEY}_${target.id}`);
+    if (target.email) {
+      localStorage.removeItem(`${STORAGE_KEY}_${target.email}`);
+      localStorage.removeItem(`${TARGET_STORAGE_KEY}_${target.email}`);
+    }
   } catch (err) {
     console.error(err);
   }
+
+  // Cloud sync in background
+  try {
+    deleteUserOnCloud(target.id || target.email).catch((err) => {
+      console.error('Failed to sync user deletion to cloud:', err);
+    });
+  } catch (_) {}
 
   return true;
 }

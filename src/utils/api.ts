@@ -64,7 +64,7 @@ export async function updateUserStatusOnCloud(
   status: UserStatus
 ): Promise<boolean> {
   try {
-    const res = await fetch(`${API_BASE}/users/${userId}/status`, {
+    const res = await fetch(`${API_BASE}/users/${encodeURIComponent(userId)}/status`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
@@ -77,7 +77,7 @@ export async function updateUserStatusOnCloud(
 
 export async function deleteUserOnCloud(userId: string): Promise<boolean> {
   try {
-    const res = await fetch(`${API_BASE}/users/${userId}`, {
+    const res = await fetch(`${API_BASE}/users/${encodeURIComponent(userId)}`, {
       method: 'DELETE',
     });
     return res.ok;
@@ -91,7 +91,7 @@ export async function updateProfileOnCloud(
   updates: Partial<UserProfile>
 ): Promise<boolean> {
   try {
-    const res = await fetch(`${API_BASE}/users/${userId}`, {
+    const res = await fetch(`${API_BASE}/users/${encodeURIComponent(userId)}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updates),

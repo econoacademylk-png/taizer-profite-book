@@ -35,7 +35,12 @@ import {
   loadUserProfile,
   saveUserProfile,
 } from '../utils/storage';
-import { fetchUsersFromCloud, updateProfileOnCloud } from '../utils/api';
+import {
+  fetchUsersFromCloud,
+  updateProfileOnCloud,
+  updateUserStatusOnCloud,
+  deleteUserOnCloud,
+} from '../utils/api';
 import { TaizerLogo } from './TaizerLogo';
 
 interface UsersViewProps {
@@ -107,9 +112,37 @@ export const UsersView: React.FC<UsersViewProps> = ({ onUserStatusChanged, onPro
     });
   };
 
-  const handleApprove = (user: UserProfile) => {
-    updateUserStatus(user.id, 'approved');
+  const handleApprove = async (user: UserProfile) => {
+    const targetId = user.id || user.email;
+
+    // 1. Optimistic local update so UI immediately changes to Approved
+    setUsers((prev) =>
+      prev.map((u) =>
+        u.id === user.id || (u.email && u.email.toLowerCase() === user.email.toLowerCase())
+          ? { ...u, status: 'approved' }
+          : u
+      )
+    );
+    updateUserStatus(targetId, 'approved');
+
+    setFeedback({
+      message: `User "${user.name}" (${user.email}) has been APPROVED! Syncing with cloud...`,
+      type: 'success',
+    });
+
+    try {
+      // 2. Persist to MongoDB Atlas cloud database
+      await updateUserStatusOnCloud(targetId, 'approved');
+      if (user.email && user.email !== targetId) {
+        await updateUserStatusOnCloud(user.email, 'approved');
+      }
+    } catch (err) {
+      console.error('Error updating status on cloud:', err);
+    }
+
+    // 3. Refresh from cloud
     refreshUsers();
+
     setFeedback({
       message: `User "${user.name}" (${user.email}) has been APPROVED! They can now log in.`,
       type: 'success',
@@ -117,9 +150,35 @@ export const UsersView: React.FC<UsersViewProps> = ({ onUserStatusChanged, onPro
     setTimeout(() => setFeedback(null), 4000);
   };
 
-  const handleReject = (user: UserProfile) => {
-    updateUserStatus(user.id, 'rejected');
+  const handleReject = async (user: UserProfile) => {
+    const targetId = user.id || user.email;
+
+    // 1. Optimistic local update
+    setUsers((prev) =>
+      prev.map((u) =>
+        u.id === user.id || (u.email && u.email.toLowerCase() === user.email.toLowerCase())
+          ? { ...u, status: 'rejected' }
+          : u
+      )
+    );
+    updateUserStatus(targetId, 'rejected');
+
+    setFeedback({
+      message: `User "${user.name}" has been REJECTED. Syncing with cloud...`,
+      type: 'danger',
+    });
+
+    try {
+      await updateUserStatusOnCloud(targetId, 'rejected');
+      if (user.email && user.email !== targetId) {
+        await updateUserStatusOnCloud(user.email, 'rejected');
+      }
+    } catch (err) {
+      console.error('Error updating status on cloud:', err);
+    }
+
     refreshUsers();
+
     setFeedback({
       message: `User "${user.name}" has been REJECTED.`,
       type: 'danger',
@@ -127,15 +186,37 @@ export const UsersView: React.FC<UsersViewProps> = ({ onUserStatusChanged, onPro
     setTimeout(() => setFeedback(null), 4000);
   };
 
-  const handleDelete = (user: UserProfile) => {
+  const handleDelete = async (user: UserProfile) => {
     if (user.role === 'admin' || user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
       alert('The primary Admin account cannot be deleted.');
       return;
     }
 
     if (window.confirm(`Are you sure you want to permanently remove user "${user.name}" (${user.email})?`)) {
+      const targetId = user.id || user.email;
+
+      // 1. Optimistic delete
+      setUsers((prev) =>
+        prev.filter((u) => u.id !== user.id && (!user.email || u.email.toLowerCase() !== user.email.toLowerCase()))
+      );
       deleteUser(user.id);
+
+      setFeedback({
+        message: `User "${user.name}" has been removed. Syncing with cloud...`,
+        type: 'danger',
+      });
+
+      try {
+        await deleteUserOnCloud(targetId);
+        if (user.email && user.email !== targetId) {
+          await deleteUserOnCloud(user.email);
+        }
+      } catch (err) {
+        console.error('Error deleting user on cloud:', err);
+      }
+
       refreshUsers();
+
       setFeedback({
         message: `User "${user.name}" has been removed.`,
         type: 'danger',
@@ -805,7 +886,7 @@ export const UsersView: React.FC<UsersViewProps> = ({ onUserStatusChanged, onPro
                       <div className="flex items-center justify-between text-xs pt-1 border-t border-emerald-200/50">
                         <span className="text-stone-600">Trading Growth Tier</span>
                         <span className="font-bold text-emerald-800">
-                          {tier.name} ({tier.percentage}%)
+                          Tier {tier.tier} (${tier.minRange} - ${tier.maxRange})
                         </span>
                       </div>
 

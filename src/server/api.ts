@@ -1,4 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'http';
+import { ObjectId } from 'mongodb';
 import { connectToDatabase, ADMIN_EMAIL, ADMIN_EMAILS, isAdminEmail, ADMIN_PASSWORD } from './db.ts';
 
 function sendJson(res: ServerResponse, status: number, data: any) {
@@ -84,6 +85,7 @@ export async function handleApiRequest(
   req: IncomingMessage,
   res: ServerResponse
 ): Promise<boolean> {
+  const method = (req.method || 'GET').toUpperCase();
   const url = new URL(req.url || '', `http://${req.headers.host || 'localhost'}`);
   let pathname = url.pathname;
   if (pathname.startsWith('/.netlify/functions/api')) {
@@ -374,15 +376,33 @@ export async function handleApiRequest(
     // PATCH /api/users/:id/status
     const statusMatch = pathname.match(/^\/api\/users\/([^/]+)\/status$/);
     if (statusMatch && (method === 'PATCH' || method === 'PUT')) {
-      const userId = statusMatch[1];
+      const rawUserId = statusMatch[1];
+      const userId = decodeURIComponent(rawUserId).trim();
       const body = await parseJsonBody(req);
       const newStatus = body.status;
 
-      await usersCol.updateOne(
-        { $or: [{ id: userId }, { email: userId }] },
-        { $set: { status: newStatus } }
-      );
-      sendJson(res, 200, { success: true });
+      let objectId: any = null;
+      try {
+        if (ObjectId.isValid(userId) && userId.length === 24) {
+          objectId = new ObjectId(userId);
+        }
+      } catch (_) {}
+
+      const filter: any = {
+        $or: [
+          { id: userId },
+          { email: userId.toLowerCase() },
+          { email: { $regex: new RegExp(`^${userId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } },
+        ],
+      };
+      if (objectId) {
+        filter.$or.push({ _id: objectId });
+      }
+
+      const updateResult = await usersCol.updateOne(filter, { $set: { status: newStatus } });
+      console.log(`[API] Updated status for user "${userId}" to "${newStatus}". Matched: ${updateResult.matchedCount}, Modified: ${updateResult.modifiedCount}`);
+
+      sendJson(res, 200, { success: true, matched: updateResult.matchedCount, modified: updateResult.modifiedCount });
       return true;
     }
 
@@ -390,19 +410,44 @@ export async function handleApiRequest(
     const deleteMatch = pathname.match(/^\/api\/users\/([^/]+)$/);
     if (deleteMatch && method === 'DELETE') {
       const rawUserId = deleteMatch[1];
-      const userId = decodeURIComponent(rawUserId);
-      const target: any = await usersCol.findOne({
+      const userId = decodeURIComponent(rawUserId).trim();
+
+      let objectId: any = null;
+      try {
+        if (ObjectId.isValid(userId) && userId.length === 24) {
+          objectId = new ObjectId(userId);
+        }
+      } catch (_) {}
+
+      const filter: any = {
         $or: [
           { id: userId },
           { email: userId.toLowerCase() },
           { email: { $regex: new RegExp(`^${userId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } },
         ],
-      });
+      };
+      if (objectId) {
+        filter.$or.push({ _id: objectId });
+      }
+
+      const target: any = await usersCol.findOne(filter);
 
       if (target && target.role !== 'admin' && !isAdminEmail(target.email)) {
         await usersCol.deleteOne({ _id: target._id });
-        await txCol.deleteMany({ userId: target.id || userId });
-        await targetsCol.deleteMany({ userId: target.id || userId });
+        await txCol.deleteMany({
+          $or: [
+            { userId: target.id },
+            { userId: target.email },
+            { userId: userId },
+          ],
+        });
+        await targetsCol.deleteMany({
+          $or: [
+            { userId: target.id },
+            { userId: target.email },
+            { userId: userId },
+          ],
+        });
       }
       sendJson(res, 200, { success: true });
       return true;
@@ -412,7 +457,7 @@ export async function handleApiRequest(
     const updateMatch = pathname.match(/^\/api\/users\/([^/]+)$/);
     if (updateMatch && method === 'PUT') {
       const rawUserId = updateMatch[1];
-      const userId = decodeURIComponent(rawUserId);
+      const userId = decodeURIComponent(rawUserId).trim();
       const body = await parseJsonBody(req);
 
       const updateFields: any = {};
@@ -423,16 +468,25 @@ export async function handleApiRequest(
       if (body.startDate) updateFields.startDate = body.startDate;
       if (body.monthNumber) updateFields.monthNumber = body.monthNumber;
 
-      await usersCol.updateOne(
-        {
-          $or: [
-            { id: userId },
-            { email: userId.toLowerCase() },
-            { email: { $regex: new RegExp(`^${userId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } },
-          ],
-        },
-        { $set: updateFields }
-      );
+      let objectId: any = null;
+      try {
+        if (ObjectId.isValid(userId) && userId.length === 24) {
+          objectId = new ObjectId(userId);
+        }
+      } catch (_) {}
+
+      const filter: any = {
+        $or: [
+          { id: userId },
+          { email: userId.toLowerCase() },
+          { email: { $regex: new RegExp(`^${userId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } },
+        ],
+      };
+      if (objectId) {
+        filter.$or.push({ _id: objectId });
+      }
+
+      await usersCol.updateOne(filter, { $set: updateFields });
       await syncUserRealBalance(db, userId);
       sendJson(res, 200, { success: true });
       return true;
