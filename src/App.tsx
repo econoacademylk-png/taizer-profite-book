@@ -44,6 +44,7 @@ import {
   saveTransactionToCloud,
   deleteTransactionFromCloud,
   checkCloudHealth,
+  updateProfileOnCloud,
 } from './utils/api';
 
 export default function App() {
@@ -140,6 +141,20 @@ export default function App() {
     saveUserProfile(newProfile);
     setIsRegisterOpen(false);
     setPendingCount(getPendingUsersCount());
+
+    // Sync updated wallet balance, target, name to MongoDB Atlas
+    const identifier = newProfile.id || newProfile.email;
+    if (identifier) {
+      updateProfileOnCloud(identifier, {
+        name: newProfile.name,
+        walletBalance: newProfile.walletBalance,
+        dailyTarget: newProfile.dailyTarget,
+        startDate: newProfile.startDate,
+        monthNumber: newProfile.monthNumber,
+      }).then((ok) => {
+        if (ok) setIsCloudConnected(true);
+      });
+    }
   };
 
   // Start next month handler
@@ -147,6 +162,16 @@ export default function App() {
     setProfile(newProfile);
     saveUserProfile(newProfile);
     setIsNextMonthOpen(false);
+
+    const identifier = newProfile.id || newProfile.email;
+    if (identifier) {
+      updateProfileOnCloud(identifier, {
+        walletBalance: newProfile.walletBalance,
+        dailyTarget: newProfile.dailyTarget,
+        startDate: newProfile.startDate,
+        monthNumber: newProfile.monthNumber,
+      });
+    }
   };
 
   // Add transaction handler (saved to state, localStorage, and MongoDB Atlas)
@@ -367,7 +392,10 @@ export default function App() {
             onNavigateToSheet={() => setActiveTab('sheet')}
           />
         ) : isAdmin ? (
-          <UsersView onUserStatusChanged={() => setPendingCount(getPendingUsersCount())} />
+          <UsersView
+            onUserStatusChanged={() => setPendingCount(getPendingUsersCount())}
+            onProfileUpdated={(updated) => setProfile(updated)}
+          />
         ) : (
           <HomeView
             transactions={transactions}
