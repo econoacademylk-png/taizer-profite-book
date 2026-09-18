@@ -85,8 +85,10 @@ export async function handleApiRequest(
   res: ServerResponse
 ): Promise<boolean> {
   const url = new URL(req.url || '', `http://${req.headers.host || 'localhost'}`);
-  const pathname = url.pathname;
-  const method = req.method?.toUpperCase();
+  let pathname = url.pathname;
+  if (pathname.startsWith('/.netlify/functions/api')) {
+    pathname = pathname.replace('/.netlify/functions/api', '/api');
+  }
 
   if (!pathname.startsWith('/api')) {
     return false;
