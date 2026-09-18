@@ -1,0 +1,6 @@
+{
+  "name": "Taizer Crypto",
+  "description": "Daily income, loss calculator, and automated monthly & yearly target sheet for Taizer Crypto.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
