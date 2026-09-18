@@ -62,6 +62,16 @@ export const HomeView: React.FC<HomeViewProps> = ({
   };
 
   const handleSubmit = (type: 'income' | 'loss') => {
+    if (!profile || !profile.isRegistered) {
+      setNotification({
+        message: 'Please log in to your account to record trades.',
+        type: 'loss',
+      });
+      setTimeout(() => setNotification(null), 3000);
+      if (onOpenProfile) onOpenProfile();
+      return;
+    }
+
     const amountNum = parseFloat(displayValue);
     if (isNaN(amountNum) || amountNum <= 0) {
       setNotification({
@@ -107,12 +117,15 @@ export const HomeView: React.FC<HomeViewProps> = ({
     .reduce((sum, t) => sum + t.amount, 0);
   const todayNet = todayIncome - todayLoss;
 
-  // Target metrics based on user's wallet tier
-  const dailyTarget = profile?.dailyTarget || 3;
-  const isTargetCompleted = todayNet >= dailyTarget;
+  // Target metrics based on user's wallet tier (only for authenticated user)
+  const isUserAuthenticated = Boolean(profile && profile.isRegistered);
+  const dailyTarget = isUserAuthenticated ? (profile?.dailyTarget || 3) : 0;
+  const isTargetCompleted = isUserAuthenticated && todayNet >= dailyTarget;
   const extraProfit = isTargetCompleted ? Math.max(0, todayNet - dailyTarget) : 0;
-  const remainingForTarget = Math.max(0, dailyTarget - todayNet);
-  const targetProgressPercent = Math.min(200, Math.max(0, Math.round((todayNet / dailyTarget) * 100)));
+  const remainingForTarget = isUserAuthenticated ? Math.max(0, dailyTarget - todayNet) : 0;
+  const targetProgressPercent = isUserAuthenticated && dailyTarget > 0
+    ? Math.min(200, Math.max(0, Math.round((todayNet / dailyTarget) * 100)))
+    : 0;
 
   // 30-Day Cycle Day Calculation
   const startObj = profile?.startDate ? new Date(profile.startDate) : new Date(todayStr);
@@ -122,17 +135,20 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const isMonthCompleted = diffDays >= 30;
 
   // Total Net Profit across all trades and Real Live Wallet Balance
-  const totalAllTimeProfit = transactions.reduce(
-    (sum, tx) => sum + (tx.type === 'income' ? tx.amount : -tx.amount),
-    0
-  );
-  const startingWalletBalance = profile?.walletBalance || 10;
-  const currentRealWalletBalance = Number(Math.max(0, startingWalletBalance + totalAllTimeProfit).toFixed(2));
+  const totalAllTimeProfit = isUserAuthenticated
+    ? transactions.reduce((sum, tx) => sum + (tx.type === 'income' ? tx.amount : -tx.amount), 0)
+    : 0;
+  const startingWalletBalance = isUserAuthenticated ? (profile?.walletBalance || 10) : 0;
+  const currentRealWalletBalance = isUserAuthenticated
+    ? Number(Math.max(0, startingWalletBalance + totalAllTimeProfit).toFixed(2))
+    : 0;
 
   // Cycle Net Profit and Account Balance calculation
-  const cycleNetProfit = transactions
-    .filter((t) => !profile?.startDate || t.date >= profile.startDate)
-    .reduce((sum, tx) => sum + (tx.type === 'income' ? tx.amount : -tx.amount), 0);
+  const cycleNetProfit = isUserAuthenticated
+    ? transactions
+        .filter((t) => !profile?.startDate || t.date >= profile.startDate)
+        .reduce((sum, tx) => sum + (tx.type === 'income' ? tx.amount : -tx.amount), 0)
+    : 0;
   const currentAccountBalance = Math.max(0, startingWalletBalance + cycleNetProfit);
   const nextMonthProjection = calculateNextMonthTargetFromBalance(currentAccountBalance);
 
