@@ -201,7 +201,7 @@ export const UsersView: React.FC<UsersViewProps> = ({ onUserStatusChanged, onPro
     setEditingUser(null);
     refreshUsers();
     setFeedback({
-      message: `Updated wallet balance for "${editingUser.name}" to $${parsed.toFixed(2)} USD (Daily Target: $${newDailyTarget.toFixed(2)}/day). Saved to MongoDB Atlas!`,
+      message: `Updated wallet balance for "${editingUser.name}" to $${parsed.toFixed(2)} USD (Daily Target: $${newDailyTarget.toFixed(2)}/day). Changes saved successfully!`,
       type: 'success',
     });
     setTimeout(() => setFeedback(null), 4000);
@@ -819,9 +819,6 @@ export const UsersView: React.FC<UsersViewProps> = ({ onUserStatusChanged, onPro
                   );
                 })()}
 
-                <div className="p-3 bg-stone-50 rounded-xl text-[11px] text-stone-500 leading-relaxed">
-                  💡 <strong>MongoDB Atlas Sync:</strong> Updating this balance will immediately sync to your cloud database and re-calculate real balance and daily target for this user.
-                </div>
               </div>
 
               {/* Footer Actions */}
@@ -843,12 +840,12 @@ export const UsersView: React.FC<UsersViewProps> = ({ onUserStatusChanged, onPro
                   {isSavingWallet ? (
                     <>
                       <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span>Saving to Cloud...</span>
+                      <span>Saving Changes...</span>
                     </>
                   ) : (
                     <>
                       <CheckCircle2 className="w-4 h-4" />
-                      <span>Save &amp; Sync to Database</span>
+                      <span>Save Changes</span>
                     </>
                   )}
                 </button>

@@ -327,169 +327,197 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </div>
 
         {/* Daily Target Progress & Profile Overview Banner (Order 2 on mobile, Top col-span-12 on desktop) */}
-        <div id="daily-target-banner" className="w-full order-2 lg:order-1 lg:col-span-12 bg-white rounded-2xl border border-stone-200 shadow-xs p-3.5 sm:p-5 space-y-3.5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-100">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-stone-900 text-white flex items-center justify-center font-black shrink-0">
-                <Target className="w-5 h-5 text-emerald-400" />
+        {!isUserAuthenticated ? (
+          <div id="guest-welcome-banner" className="w-full order-2 lg:order-1 lg:col-span-12 bg-white rounded-2xl border border-stone-200 shadow-xs p-5 sm:p-7 flex flex-col sm:flex-row items-center justify-between gap-5">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-black shrink-0">
+                <Target className="w-6 h-6 text-emerald-600" />
               </div>
               <div>
-                <div className="flex items-center space-x-2 flex-wrap">
-                  <span className="font-bold text-stone-900 text-sm sm:text-base">
-                    {profile?.name || 'Taizer Trader'}
-                  </span>
-                  <span className="text-xs font-semibold bg-stone-100 text-stone-700 px-2 py-0.5 rounded-md">
-                    Month {profile?.monthNumber || 1} • Day {dayInCycle}/30
-                  </span>
-                  <span className="text-[10px] uppercase font-black px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800">
-                    Live Wallet
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2 text-xs text-stone-500 mt-1 flex-wrap">
-                  <span className="flex items-baseline space-x-1">
-                    <span className="text-stone-600 font-medium">Real Balance:</span>
-                    <strong className="text-stone-950 font-mono text-sm sm:text-base font-black">
-                      ${currentRealWalletBalance.toFixed(2)}
-                    </strong>
-                    <span className="text-[10px] text-stone-400 font-bold">USD</span>
-                  </span>
-                  <span>•</span>
-                  <span
-                    className={`text-[10px] font-mono font-bold px-1.5 py-0.2 rounded border ${
-                      totalAllTimeProfit > 0
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                        : totalAllTimeProfit < 0
-                        ? 'bg-rose-50 text-rose-700 border-rose-200'
-                        : 'bg-stone-100 text-stone-600 border-stone-200'
-                    }`}
-                  >
-                    {totalAllTimeProfit > 0
-                      ? `+$${totalAllTimeProfit.toFixed(2)}`
-                      : totalAllTimeProfit < 0
-                      ? `-$${Math.abs(totalAllTimeProfit).toFixed(2)}`
-                      : '$0.00'}{' '}
-                    Net P&amp;L
-                  </span>
-                  <span>•</span>
-                  <span>Base: <strong className="text-stone-700 font-mono">${startingWalletBalance.toFixed(2)}</strong></span>
-                  <span>•</span>
-                  <span>Goal: <strong className="text-emerald-700 font-mono">${(dailyTarget * 30).toFixed(2)}</strong></span>
-                </div>
+                <h3 className="text-base sm:text-lg font-bold text-stone-900">
+                  Welcome to Taizer Crypto
+                </h3>
+                <p className="text-xs sm:text-sm text-stone-500 mt-0.5 max-w-lg">
+                  Please log in or create an account to view your private trading targets, live wallet balance, and track daily crypto income.
+                </p>
               </div>
             </div>
-
-            <div className="flex items-center gap-2">
-              {onOpenProfile && (
-                <button
-                  id="edit-trading-plan-btn"
-                  onClick={onOpenProfile}
-                  className="px-3 py-1.5 rounded-xl border border-stone-200 bg-stone-50 hover:bg-stone-100 text-stone-700 text-xs font-semibold transition-colors cursor-pointer"
-                >
-                  Change Wallet
-                </button>
-              )}
-              {onOpenNextMonth && (
-                <button
-                  id="advance-next-month-btn"
-                  onClick={onOpenNextMonth}
-                  className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center space-x-1"
-                >
-                  <span>Next Month</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
+            {onOpenProfile && (
+              <button
+                type="button"
+                onClick={onOpenProfile}
+                className="px-5 py-2.5 rounded-xl bg-stone-950 hover:bg-stone-800 text-white text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center space-x-2 shrink-0"
+              >
+                <span>Log In / Sign Up</span>
+                <ArrowRight className="w-3.5 h-3.5 text-emerald-400" />
+              </button>
+            )}
           </div>
-
-          {/* Real Live Balance Card & Daily Target Progress Tracker */}
-          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-stretch">
-            {/* Card 1: Prominent Real Live Balance */}
-            <div className="sm:col-span-5 bg-gradient-to-br from-stone-900 to-stone-950 text-white p-3.5 sm:p-4 rounded-xl shadow-xs border border-stone-800 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400">
-                    Real Live Balance
-                  </span>
-                  <span className="text-[9px] uppercase font-black px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                    Live
-                  </span>
+        ) : (
+          <div id="daily-target-banner" className="w-full order-2 lg:order-1 lg:col-span-12 bg-white rounded-2xl border border-stone-200 shadow-xs p-3.5 sm:p-5 space-y-3.5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-100">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-stone-900 text-white flex items-center justify-center font-black shrink-0">
+                  <Target className="w-5 h-5 text-emerald-400" />
                 </div>
-                <div className="flex items-baseline space-x-1.5 mt-1">
-                  <span className="text-2xl sm:text-3xl font-mono font-black text-emerald-400">
-                    ${currentRealWalletBalance.toFixed(2)}
-                  </span>
-                  <span className="text-xs text-stone-400 font-mono">USD</span>
+                <div>
+                  <div className="flex items-center space-x-2 flex-wrap">
+                    <span className="font-bold text-stone-900 text-sm sm:text-base">
+                      {profile?.name || 'Trader'}
+                    </span>
+                    <span className="text-xs font-semibold bg-stone-100 text-stone-700 px-2 py-0.5 rounded-md">
+                      Month {profile?.monthNumber || 1} • Day {dayInCycle}/30
+                    </span>
+                    <span className="text-[10px] uppercase font-black px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800">
+                      Live Wallet
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-xs text-stone-500 mt-1 flex-wrap">
+                    <span className="flex items-baseline space-x-1">
+                      <span className="text-stone-600 font-medium">Real Balance:</span>
+                      <strong className="text-stone-950 font-mono text-sm sm:text-base font-black">
+                        ${currentRealWalletBalance.toFixed(2)}
+                      </strong>
+                      <span className="text-[10px] text-stone-400 font-bold">USD</span>
+                    </span>
+                    <span>•</span>
+                    <span
+                      className={`text-[10px] font-mono font-bold px-1.5 py-0.2 rounded border ${
+                        totalAllTimeProfit > 0
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          : totalAllTimeProfit < 0
+                          ? 'bg-rose-50 text-rose-700 border-rose-200'
+                          : 'bg-stone-100 text-stone-600 border-stone-200'
+                      }`}
+                    >
+                      {totalAllTimeProfit > 0
+                        ? `+$${totalAllTimeProfit.toFixed(2)}`
+                        : totalAllTimeProfit < 0
+                        ? `-$${Math.abs(totalAllTimeProfit).toFixed(2)}`
+                        : '$0.00'}{' '}
+                      Net P&amp;L
+                    </span>
+                    <span>•</span>
+                    <span>Base: <strong className="text-stone-700 font-mono">${startingWalletBalance.toFixed(2)}</strong></span>
+                    <span>•</span>
+                    <span>Goal: <strong className="text-emerald-700 font-mono">${(dailyTarget * 30).toFixed(2)}</strong></span>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center justify-between text-[11px] text-stone-400 pt-2 border-t border-stone-800/80 font-mono mt-2">
-                <span>Base: ${startingWalletBalance.toFixed(2)}</span>
-                <span className={totalAllTimeProfit >= 0 ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
-                  {totalAllTimeProfit >= 0 ? '+' : '-'}${Math.abs(totalAllTimeProfit).toFixed(2)} P&amp;L
-                </span>
-              </div>
-            </div>
 
-            {/* Card 2: Today's Target & Progress */}
-            <div className="sm:col-span-7 bg-stone-50 p-3 sm:p-4 rounded-xl border border-stone-200/80 space-y-2 flex flex-col justify-between">
-              <div className="flex items-center justify-between text-xs flex-wrap gap-1">
-                <span className="font-semibold text-stone-700 flex items-center space-x-1">
-                  <span>Today's Profit:</span>
-                  <span className={`font-mono font-bold ${todayNet >= 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
-                    {todayNet >= 0 ? `+$${todayNet.toFixed(2)}` : `-$${Math.abs(todayNet).toFixed(2)}`}
-                  </span>
-                </span>
-
-                {isTargetCompleted ? (
-                  <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300/80">
-                    <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Target Completed! 🎉</span>
-                  </span>
-                ) : (
-                  <span className="text-stone-500 font-medium text-xs">
-                    Target: <strong className="text-stone-800 font-mono">${dailyTarget.toFixed(2)}</strong> (Remaining: <strong className="text-stone-800 font-mono">${remainingForTarget.toFixed(2)}</strong>)
-                  </span>
+              <div className="flex items-center gap-2">
+                {onOpenProfile && (
+                  <button
+                    id="edit-trading-plan-btn"
+                    onClick={onOpenProfile}
+                    className="px-3 py-1.5 rounded-xl border border-stone-200 bg-stone-50 hover:bg-stone-100 text-stone-700 text-xs font-semibold transition-colors cursor-pointer"
+                  >
+                    Change Wallet
+                  </button>
+                )}
+                {onOpenNextMonth && (
+                  <button
+                    id="advance-next-month-btn"
+                    onClick={onOpenNextMonth}
+                    className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center space-x-1"
+                  >
+                    <span>Next Month</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
                 )}
               </div>
+            </div>
 
-              {/* Visual Progress Bar */}
-              <div className="w-full h-2.5 bg-stone-200 rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all duration-500 ${
-                    isTargetCompleted ? 'bg-emerald-500' : 'bg-emerald-600'
-                  }`}
-                  style={{ width: `${Math.min(100, Math.max(0, targetProgressPercent))}%` }}
-                />
-              </div>
-
-              {/* Extra Profit Highlight (Wadi Gana) */}
-              {isTargetCompleted && extraProfit > 0 && (
-                <div id="extra-profit-callout" className="flex items-center justify-between bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 text-xs">
-                  <span className="font-bold text-emerald-900 flex items-center space-x-1">
-                    <Award className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Extra Profit (Wadi Gana):</span>
-                  </span>
-                  <span className="font-mono font-black text-emerald-700 text-sm">
-                    +${extraProfit.toFixed(2)} USD
+            {/* Real Live Balance Card & Daily Target Progress Tracker */}
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-stretch">
+              {/* Card 1: Prominent Real Live Balance */}
+              <div className="sm:col-span-5 bg-gradient-to-br from-stone-900 to-stone-950 text-white p-3.5 sm:p-4 rounded-xl shadow-xs border border-stone-800 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400">
+                      Real Live Balance
+                    </span>
+                    <span className="text-[9px] uppercase font-black px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                      Live
+                    </span>
+                  </div>
+                  <div className="flex items-baseline space-x-1.5 mt-1">
+                    <span className="text-2xl sm:text-3xl font-mono font-black text-emerald-400">
+                      ${currentRealWalletBalance.toFixed(2)}
+                    </span>
+                    <span className="text-xs text-stone-400 font-mono">USD</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-[11px] text-stone-400 pt-2 border-t border-stone-800/80 font-mono mt-2">
+                  <span>Base: ${startingWalletBalance.toFixed(2)}</span>
+                  <span className={totalAllTimeProfit >= 0 ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
+                    {totalAllTimeProfit >= 0 ? '+' : '-'}${Math.abs(totalAllTimeProfit).toFixed(2)} P&amp;L
                   </span>
                 </div>
-              )}
+              </div>
 
-              {/* Next Month Auto-Target Live Projection */}
-              <div className="flex items-center justify-between bg-stone-100/80 px-2.5 py-1 rounded-lg border border-stone-200/80 text-[11px] text-stone-600 flex-wrap gap-1">
-                <span className="flex items-center space-x-1">
-                  <TrendingUp className="w-3 h-3 text-emerald-600 shrink-0" />
-                  <span>Next Month Auto Target:</span>
-                  <strong className="font-mono text-emerald-800 font-bold">
-                    ${nextMonthProjection.dailyTarget.toFixed(2)}/day
-                  </strong>
-                </span>
-                <span className="text-stone-500 font-mono text-[10px]">
-                  30-day: ${nextMonthProjection.thirtyDayGoal.toFixed(2)}
-                </span>
+              {/* Card 2: Today's Target & Progress */}
+              <div className="sm:col-span-7 bg-stone-50 p-3 sm:p-4 rounded-xl border border-stone-200/80 space-y-2 flex flex-col justify-between">
+                <div className="flex items-center justify-between text-xs flex-wrap gap-1">
+                  <span className="font-semibold text-stone-700 flex items-center space-x-1">
+                    <span>Today's Profit:</span>
+                    <span className={`font-mono font-bold ${todayNet >= 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
+                      {todayNet >= 0 ? `+$${todayNet.toFixed(2)}` : `-$${Math.abs(todayNet).toFixed(2)}`}
+                    </span>
+                  </span>
+
+                  {isTargetCompleted ? (
+                    <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300/80">
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Target Completed! 🎉</span>
+                    </span>
+                  ) : (
+                    <span className="text-stone-500 font-medium text-xs">
+                      Target: <strong className="text-stone-800 font-mono">${dailyTarget.toFixed(2)}</strong> (Remaining: <strong className="text-stone-800 font-mono">${remainingForTarget.toFixed(2)}</strong>)
+                    </span>
+                  )}
+                </div>
+
+                {/* Visual Progress Bar */}
+                <div className="w-full h-2.5 bg-stone-200 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${
+                      isTargetCompleted ? 'bg-emerald-500' : 'bg-emerald-600'
+                    }`}
+                    style={{ width: `${Math.min(100, Math.max(0, targetProgressPercent))}%` }}
+                  />
+                </div>
+
+                {/* Extra Profit Highlight (Wadi Gana) */}
+                {isTargetCompleted && extraProfit > 0 && (
+                  <div id="extra-profit-callout" className="flex items-center justify-between bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 text-xs">
+                    <span className="font-bold text-emerald-900 flex items-center space-x-1">
+                      <Award className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Extra Profit (Wadi Gana):</span>
+                    </span>
+                    <span className="font-mono font-black text-emerald-700 text-sm">
+                      +${extraProfit.toFixed(2)} USD
+                    </span>
+                  </div>
+                )}
+
+                {/* Next Month Auto-Target Live Projection */}
+                <div className="flex items-center justify-between bg-stone-100/80 px-2.5 py-1 rounded-lg border border-stone-200/80 text-[11px] text-stone-600 flex-wrap gap-1">
+                  <span className="flex items-center space-x-1">
+                    <TrendingUp className="w-3 h-3 text-emerald-600 shrink-0" />
+                    <span>Next Month Auto Target:</span>
+                    <strong className="font-mono text-emerald-800 font-bold">
+                      ${nextMonthProjection.dailyTarget.toFixed(2)}/day
+                    </strong>
+                  </span>
+                  <span className="text-stone-400">
+                    30-day: <span className="font-mono font-bold">${nextMonthProjection.thirtyDayGoal.toFixed(2)}</span>
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Right / Side: Today's Summary & Quick Log (Order 3 on mobile, Col-span-5 on desktop) */}
         <div className="w-full order-3 lg:order-3 lg:col-span-5 space-y-4 sm:space-y-6">

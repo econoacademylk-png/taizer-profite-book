@@ -25,6 +25,7 @@ import {
   saveTransactions,
   loadUserProfile,
   saveUserProfile,
+  clearUserProfile,
   calculateDailyTarget,
   getCurrentDateString,
   getPendingUsersCount,
@@ -73,7 +74,7 @@ export default function App() {
     0
   );
   const liveWalletBalance = Number(Math.max(0, (profile?.walletBalance || 10) + totalNetProfit).toFixed(2));
-  const liveProfile: UserProfile | null = profile
+  const liveProfile: UserProfile | null = (profile && profile.isRegistered)
     ? {
         ...profile,
         currentRealBalance: liveWalletBalance,
@@ -256,19 +257,14 @@ export default function App() {
     deleteTransactionFromCloud(id);
   };
 
-  // Sign out handler
+  // Sign out handler (completely clears active user session)
   const handleSignOut = () => {
-    if (profile) {
-      const loggedOut: UserProfile = {
-        ...profile,
-        isRegistered: false,
-      };
-      setProfile(loggedOut);
-      saveUserProfile(loggedOut);
-    }
-    if (activeTab === 'users') {
-      setActiveTab('home');
-    }
+    clearUserProfile();
+    setProfile(null);
+    setTransactions([]);
+    setActiveTab('home');
+    setAuthModalMode('login');
+    setIsRegisterOpen(true);
   };
 
   return (

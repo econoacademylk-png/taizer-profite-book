@@ -302,14 +302,24 @@ export function loadUserProfile(): UserProfile | null {
   try {
     const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
     if (!raw) {
-      // Return default admin profile as logged in if none exists
       return null;
     }
     const profile = JSON.parse(raw);
+    if (!profile || !profile.isRegistered) {
+      return null;
+    }
     return profile;
   } catch (err) {
     console.error('Failed to load profile', err);
     return null;
+  }
+}
+
+export function clearUserProfile(): void {
+  try {
+    localStorage.removeItem(PROFILE_STORAGE_KEY);
+  } catch (err) {
+    console.error('Failed to clear profile', err);
   }
 }
 
