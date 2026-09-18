@@ -301,52 +301,55 @@ export default function App() {
     <div className="w-full max-w-full overflow-x-hidden min-h-screen bg-stone-100 text-stone-800 flex flex-col font-sans selection:bg-stone-200">
       {/* Top Navbar */}
       <header className="w-full bg-white/95 backdrop-blur-md border-b border-stone-200/90 sticky top-0 z-30 shadow-2xs">
-        <div className="w-full max-w-7xl mx-auto px-2.5 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-1.5 sm:gap-4">
+        <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
           {/* Left: Brand Logo */}
           <div className="flex items-center space-x-2 sm:space-x-3 cursor-pointer shrink-0" onClick={() => setActiveTab('home')}>
             <TaizerLogo size="md" showText={true} />
-            <div className="hidden 2xl:flex items-center text-[11px] text-stone-500 pl-3 border-l border-stone-200 space-x-1.5">
-              <Clock className="w-3.5 h-3.5 text-emerald-600" />
-              <span className="font-mono text-[11px] text-stone-600">{currentTimeStr || ''}</span>
+            {/* Live Clock: Sleek compact time so it never crowds navigation */}
+            <div className="hidden xl:flex items-center text-[11px] text-stone-500 pl-3 border-l border-stone-200 space-x-1.5 shrink-0">
+              <Clock className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <span className="font-mono text-[11px] text-stone-600 font-medium">
+                {currentTimeStr ? currentTimeStr.split('•')[1]?.trim() || currentTimeStr : ''}
+              </span>
             </div>
           </div>
 
           {/* Center: Desktop Navigation Tabs (Sleek Segmented Pill) */}
-          <nav className="hidden md:flex items-center bg-stone-100/90 p-1 rounded-2xl border border-stone-200/80 shadow-2xs">
+          <nav className="hidden md:flex items-center bg-stone-100/90 p-1 rounded-2xl border border-stone-200/80 shadow-2xs shrink-0">
             <button
               id="nav-home-tab"
               onClick={() => setActiveTab('home')}
-              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 activeTab === 'home'
                   ? 'bg-white text-stone-950 shadow-xs font-bold'
                   : 'text-stone-600 hover:text-stone-950 hover:bg-white/50'
               }`}
             >
-              <Calculator className={`w-4 h-4 ${activeTab === 'home' ? 'text-emerald-600' : 'text-stone-500'}`} />
+              <Calculator className={`w-4 h-4 shrink-0 ${activeTab === 'home' ? 'text-emerald-600' : 'text-stone-500'}`} />
               <span>Home</span>
             </button>
             <button
               id="nav-sheet-tab"
               onClick={() => setActiveTab('sheet')}
-              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 activeTab === 'sheet'
                   ? 'bg-white text-stone-950 shadow-xs font-bold'
                   : 'text-stone-600 hover:text-stone-950 hover:bg-white/50'
               }`}
             >
-              <FileSpreadsheet className={`w-4 h-4 ${activeTab === 'sheet' ? 'text-emerald-600' : 'text-stone-500'}`} />
+              <FileSpreadsheet className={`w-4 h-4 shrink-0 ${activeTab === 'sheet' ? 'text-emerald-600' : 'text-stone-500'}`} />
               <span>Target Sheet</span>
             </button>
             <button
               id="nav-calendar-tab"
               onClick={() => setActiveTab('calendar')}
-              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 activeTab === 'calendar'
                   ? 'bg-white text-stone-950 shadow-xs font-bold'
                   : 'text-stone-600 hover:text-stone-950 hover:bg-white/50'
               }`}
             >
-              <CalendarIcon className={`w-4 h-4 ${activeTab === 'calendar' ? 'text-emerald-600' : 'text-stone-500'}`} />
+              <CalendarIcon className={`w-4 h-4 shrink-0 ${activeTab === 'calendar' ? 'text-emerald-600' : 'text-stone-500'}`} />
               <span>Calendar</span>
             </button>
 
@@ -355,17 +358,17 @@ export default function App() {
               <button
                 id="nav-users-tab"
                 onClick={() => setActiveTab('users')}
-                className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === 'users'
                     ? 'bg-stone-900 text-white shadow-xs'
                     : 'text-stone-700 hover:text-stone-950 hover:bg-white/50'
                 }`}
                 title="User Management & Approvals (Admin Only)"
               >
-                <UsersIcon className={`w-4 h-4 ${activeTab === 'users' ? 'text-emerald-400' : 'text-emerald-600'}`} />
+                <UsersIcon className={`w-4 h-4 shrink-0 ${activeTab === 'users' ? 'text-emerald-400' : 'text-emerald-600'}`} />
                 <span>Users</span>
                 {pendingCount > 0 && (
-                  <span className="bg-amber-500 text-stone-950 font-black text-[10px] px-1.5 py-0.5 rounded-full leading-none animate-pulse shadow-xs">
+                  <span className="bg-amber-500 text-stone-950 font-black text-[10px] px-1.5 py-0.5 rounded-full leading-none animate-pulse shadow-xs shrink-0">
                     {pendingCount}
                   </span>
                 )}
@@ -374,7 +377,7 @@ export default function App() {
           </nav>
 
           {/* Right: Actions (Dollar Rate, Install App, Profile, Sign Out / Login) */}
-          <div className="flex items-center space-x-1.5 sm:space-x-2.5 shrink-0">
+          <div className="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
             {/* Live Daily Dollar Rate Badge */}
             <DollarRateBadge />
 
@@ -383,25 +386,25 @@ export default function App() {
 
             {/* Profile & Wallet Status Badge or Login / Sign Out Buttons */}
             {profile?.isRegistered ? (
-              <div className="flex items-center space-x-1.5 sm:space-x-2">
+              <div className="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
                 <button
                   id="header-profile-btn"
                   onClick={() => setIsProfileOpen(true)}
-                  className="flex items-center space-x-1.5 sm:space-x-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-stone-50 hover:bg-stone-100/90 border border-stone-200/90 text-stone-800 shadow-2xs transition-all cursor-pointer"
+                  className="flex items-center space-x-1.5 sm:space-x-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-stone-50 hover:bg-stone-100/90 border border-stone-200/90 text-stone-800 shadow-2xs transition-all cursor-pointer shrink-0"
                   title="View Trader Profile"
                 >
-                  <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-bold ${
+                  <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center text-[10px] font-bold shrink-0 ${
                     isAdmin ? 'bg-stone-950 text-emerald-400' : 'bg-stone-950 text-white'
                   }`}>
                     {isAdmin ? (
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                      <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 shrink-0" />
                     ) : (
-                      <User className="w-3.5 h-3.5 text-emerald-400" />
+                      <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 shrink-0" />
                     )}
                   </div>
-                  <div className="text-left hidden xs:block sm:block">
-                    <div className="text-[11px] font-bold leading-tight text-stone-900 truncate max-w-[95px] flex items-center space-x-1">
-                      <span>{profile.name || 'Trader'}</span>
+                  <div className="text-left hidden sm:block shrink-0">
+                    <div className="text-[11px] font-bold leading-tight text-stone-900 truncate max-w-[110px] lg:max-w-[140px] flex items-center space-x-1">
+                      <span>{(profile.name || 'Trader').replace(/\s*\(Admin\)/gi, '')}</span>
                     </div>
                     <div className="text-[9px] text-emerald-700 font-bold leading-none font-mono mt-0.5">
                       {isAdmin ? 'Admin' : `$${liveWalletBalance.toFixed(2)} Live`}
@@ -413,11 +416,11 @@ export default function App() {
                 <button
                   id="header-signout-btn"
                   onClick={handleSignOut}
-                  className="flex items-center space-x-1.5 p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/90 text-xs font-bold shadow-2xs transition-colors cursor-pointer"
+                  className="flex items-center space-x-1.5 p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/90 text-xs font-bold shadow-2xs transition-colors cursor-pointer shrink-0"
                   title="Sign Out"
                 >
-                  <LogOut className="w-3.5 h-3.5 text-rose-600" />
-                  <span className="hidden lg:inline">Sign Out</span>
+                  <LogOut className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                  <span className="hidden lg:inline whitespace-nowrap">Sign Out</span>
                 </button>
               </div>
             ) : (

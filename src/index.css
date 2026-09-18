@@ -27,3 +27,31 @@ body {
   max-width: 100%;
   overflow-x: hidden;
 }
+
+/* Suppress and hide any Netlify badge, drawer, preview floating buttons */
+#netlify-badge,
+.netlify-badge,
+[data-netlify-drawer],
+[id*="netlify-drawer"],
+[class*="netlify-drawer"],
+[id^="netlify-feedback"],
+iframe[title*="Netlify"],
+iframe[src*="netlify"],
+div[data-netlify-deploy-id],
+div:has(> a[href*="netlify.com"]),
+div:has(> [href*="netlify.com"]),
+div:has(> svg[data-name="Netlify"]),
+a[href*="netlify.com"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  top: -99999px !important;
+  left: -99999px !important;
+  width: 0 !important;
+  height: 0 !important;
+  max-width: 0 !important;
+  max-height: 0 !important;
+  z-index: -99999 !important;
+}

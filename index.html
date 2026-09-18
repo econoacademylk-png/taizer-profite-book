@@ -29,6 +29,68 @@
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/icons/icon-512.png" />
     <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Remove and suppress Netlify Drawer / Powered by Netlify badge -->
+    <style>
+      #netlify-badge,
+      .netlify-badge,
+      [data-netlify-drawer],
+      [id*="netlify-drawer"],
+      [class*="netlify-drawer"],
+      [id^="netlify-feedback"],
+      iframe[title*="Netlify"],
+      iframe[src*="netlify"],
+      div[data-netlify-deploy-id],
+      div:has(> a[href*="netlify.com"]),
+      div:has(> [href*="netlify.com"]),
+      div:has(> svg[data-name="Netlify"]),
+      a[href*="netlify.com"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        position: absolute !important;
+        top: -99999px !important;
+        left: -99999px !important;
+        width: 0 !important;
+        height: 0 !important;
+        max-width: 0 !important;
+        max-height: 0 !important;
+        z-index: -99999 !important;
+      }
+    </style>
+    <script>
+      (function () {
+        function purgeNetlify() {
+          var els = document.querySelectorAll(
+            '[data-netlify-drawer], #netlify-badge, .netlify-badge, [id*="netlify"], iframe[src*="netlify"], iframe[title*="Netlify"], a[href*="netlify.com"], [class*="netlify"]'
+          );
+          els.forEach(function (el) {
+            if (
+              el.tagName === 'IFRAME' ||
+              el.hasAttribute('data-netlify-drawer') ||
+              (el.id && el.id.toLowerCase().indexOf('netlify') !== -1) ||
+              (el.className && typeof el.className === 'string' && el.className.toLowerCase().indexOf('netlify') !== -1) ||
+              (el.tagName === 'A' && el.href && el.href.indexOf('netlify.com') !== -1) ||
+              (el.textContent && el.textContent.indexOf('Powered by Netlify') !== -1)
+            ) {
+              el.style.display = 'none';
+              if (el.parentNode) el.parentNode.removeChild(el);
+            }
+          });
+        }
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', purgeNetlify);
+        } else {
+          purgeNetlify();
+        }
+        window.addEventListener('load', purgeNetlify);
+        try {
+          var obs = new MutationObserver(purgeNetlify);
+          obs.observe(document.documentElement, { childList: true, subtree: true });
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

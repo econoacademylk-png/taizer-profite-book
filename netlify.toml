@@ -3,6 +3,12 @@
   publish = "dist"
   functions = "netlify/functions"
 
+[build.processing]
+  skip_processing = true
+
+[context.deploy-preview.environment]
+  NETLIFY_DEPLOY_PREVIEW_DRAWER = "false"
+
 [functions]
   node_bundler = "esbuild"
   external_node_modules = ["mongodb"]
