@@ -137,7 +137,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const nextMonthProjection = calculateNextMonthTargetFromBalance(currentAccountBalance);
 
   return (
-    <div id="home-view-container" className="max-w-4xl mx-auto px-3 sm:px-4 py-2 sm:py-6 space-y-4 sm:space-y-6">
+    <div id="home-view-container" className="w-full max-w-4xl mx-auto px-2.5 sm:px-4 py-2 sm:py-6 space-y-3.5 sm:space-y-6 overflow-x-hidden">
       {/* Toast Notification */}
       {notification && (
         <div
@@ -491,10 +491,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
         </div>
 
-        {/* Right / Side: Today's Summary & Quick Log */}
-        <div className="lg:col-span-5 space-y-6">
+        {/* Right / Side: Today's Summary & Quick Log (Order 3 on mobile, Col-span-5 on desktop) */}
+        <div className="order-3 lg:order-3 lg:col-span-5 space-y-4 sm:space-y-6">
           {/* Today Overview Card */}
-          <div className="bg-white rounded-2xl border border-stone-200 shadow-xs p-6 space-y-4">
+          <div className="bg-white rounded-2xl border border-stone-200 shadow-xs p-3.5 sm:p-6 space-y-3.5 sm:space-y-4">
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
               <span className="text-sm font-semibold text-stone-900">Today's Summary</span>
               <span className="text-xs text-stone-500 font-medium">{formatDateDisplay(todayStr)}</span>

@@ -184,12 +184,12 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-100 text-stone-800 flex flex-col font-sans selection:bg-stone-200">
+    <div className="w-full max-w-full overflow-x-hidden min-h-screen bg-stone-100 text-stone-800 flex flex-col font-sans selection:bg-stone-200">
       {/* Top Navbar */}
-      <header className="bg-white/95 backdrop-blur-md border-b border-stone-200/90 sticky top-0 z-30 shadow-2xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-15 sm:h-16 flex items-center justify-between gap-3 sm:gap-6">
+      <header className="w-full bg-white/95 backdrop-blur-md border-b border-stone-200/90 sticky top-0 z-30 shadow-2xs">
+        <div className="w-full max-w-7xl mx-auto px-2.5 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-1.5 sm:gap-4">
           {/* Left: Brand Logo */}
-          <div className="flex items-center space-x-3 cursor-pointer shrink-0" onClick={() => setActiveTab('home')}>
+          <div className="flex items-center space-x-2 sm:space-x-3 cursor-pointer shrink-0" onClick={() => setActiveTab('home')}>
             <TaizerLogo size="md" showText={true} />
             <div className="hidden 2xl:flex items-center text-[11px] text-stone-500 pl-3 border-l border-stone-200 space-x-1.5">
               <Clock className="w-3.5 h-3.5 text-emerald-600" />
@@ -260,7 +260,7 @@ export default function App() {
           </nav>
 
           {/* Right: Actions (Install App, Profile, Sign Out / Login) */}
-          <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
+          <div className="flex items-center space-x-1.5 sm:space-x-2.5 shrink-0">
             {/* PWA Install Button */}
             <InstallPwaButton />
 
@@ -270,7 +270,7 @@ export default function App() {
                 <button
                   id="header-profile-btn"
                   onClick={() => setIsProfileOpen(true)}
-                  className="flex items-center space-x-2 px-2.5 sm:px-3 py-1.5 rounded-xl bg-stone-50 hover:bg-stone-100/90 border border-stone-200/90 text-stone-800 shadow-2xs transition-all cursor-pointer"
+                  className="flex items-center space-x-1.5 sm:space-x-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-stone-50 hover:bg-stone-100/90 border border-stone-200/90 text-stone-800 shadow-2xs transition-all cursor-pointer"
                   title="View Trader Profile"
                 >
                   <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-bold ${
@@ -296,7 +296,7 @@ export default function App() {
                 <button
                   id="header-signout-btn"
                   onClick={handleSignOut}
-                  className="flex items-center space-x-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/90 text-xs font-bold shadow-2xs transition-colors cursor-pointer"
+                  className="flex items-center space-x-1.5 p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/90 text-xs font-bold shadow-2xs transition-colors cursor-pointer"
                   title="Sign Out"
                 >
                   <LogOut className="w-3.5 h-3.5 text-rose-600" />
@@ -334,7 +334,7 @@ export default function App() {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 pb-28 md:pb-12">
+      <main className="flex-1 w-full max-w-full overflow-x-hidden pb-28 md:pb-12">
         {activeTab === 'home' ? (
           <HomeView
             transactions={transactions}

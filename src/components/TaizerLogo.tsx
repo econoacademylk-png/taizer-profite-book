@@ -132,7 +132,7 @@ export const TaizerLogo: React.FC<TaizerLogoProps> = ({
               Crypto
             </span>
           </div>
-          <span className={`text-stone-400 font-medium tracking-wide leading-tight mt-0.5 ${dimensions.sub}`}>
+          <span className={`text-stone-400 font-medium tracking-wide leading-tight mt-0.5 hidden xs:block ${dimensions.sub}`}>
             Income &amp; Target Sheet
           </span>
         </div>

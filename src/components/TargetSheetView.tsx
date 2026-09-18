@@ -206,7 +206,7 @@ export const TargetSheetView: React.FC<TargetSheetViewProps> = ({
   };
 
   return (
-    <div id="target-sheet-container" className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+    <div id="target-sheet-container" className="w-full max-w-6xl mx-auto px-2.5 sm:px-4 py-3 sm:py-6 space-y-4 sm:space-y-6 overflow-x-hidden">
       {/* Top Summary Card for Currently Selected Month */}
       <div
         id="monthly-summary-card"

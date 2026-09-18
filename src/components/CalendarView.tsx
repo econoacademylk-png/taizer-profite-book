@@ -202,7 +202,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const selectedDayData = selectedDayDate ? dailyStatsMap.get(selectedDayDate) : null;
 
   return (
-    <div id="calendar-view-container" className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+    <div id="calendar-view-container" className="w-full max-w-6xl mx-auto px-2.5 sm:px-4 py-3 sm:py-6 space-y-4 sm:space-y-6 overflow-x-hidden">
       {/* Header bar */}
       <div className="bg-white rounded-2xl border border-stone-200 shadow-xs p-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
