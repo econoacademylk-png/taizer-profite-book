@@ -43,6 +43,7 @@ import { RegisterModal } from './components/RegisterModal';
 import { NextMonthModal } from './components/NextMonthModal';
 import { ProfileModal } from './components/ProfileModal';
 import { InstallPwaButton } from './components/InstallPwaButton';
+import { DollarRateBadge } from './components/DollarRateBadge';
 import {
   fetchTransactionsFromCloud,
   saveTransactionToCloud,
@@ -372,8 +373,11 @@ export default function App() {
             )}
           </nav>
 
-          {/* Right: Actions (Install App, Profile, Sign Out / Login) */}
+          {/* Right: Actions (Dollar Rate, Install App, Profile, Sign Out / Login) */}
           <div className="flex items-center space-x-1.5 sm:space-x-2.5 shrink-0">
+            {/* Live Daily Dollar Rate Badge */}
+            <DollarRateBadge />
+
             {/* PWA Install Button */}
             <InstallPwaButton />
 

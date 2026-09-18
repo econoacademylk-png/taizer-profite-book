@@ -104,6 +104,115 @@ export async function handleApiRequest(
       return true;
     }
 
+    // GET /api/dollar-rate (USD to LKR live exchange rate with 30-min auto-refresh)
+    if (pathname === '/api/dollar-rate' && method === 'GET') {
+      const ratesCol = db.collection('exchange_rates');
+      const now = Date.now();
+
+      // Check cached rate within the last 30 minutes
+      const cached = await ratesCol.findOne({ base: 'USD', target: 'LKR' });
+      if (cached && cached.timestamp && now - cached.timestamp < 30 * 60 * 1000) {
+        sendJson(res, 200, {
+          success: true,
+          base: 'USD',
+          target: 'LKR',
+          rate: cached.rate,
+          date: cached.date,
+          lastUpdated: cached.lastUpdated,
+          cached: true,
+        });
+        return true;
+      }
+
+      // Fetch fresh live exchange rate
+      try {
+        let fetchedRate: number | null = null;
+        let fetchedDate = new Date().toISOString().split('T')[0];
+        let fetchedLastUpdated = new Date().toISOString();
+
+        try {
+          const apiRes = await fetch('https://open.er-api.com/v6/latest/USD', { signal: AbortSignal.timeout(6000) });
+          if (apiRes.ok) {
+            const data: any = await apiRes.json();
+            if (data?.rates?.LKR) {
+              fetchedRate = Number(Number(data.rates.LKR).toFixed(2));
+              if (data.time_last_update_utc) {
+                fetchedLastUpdated = data.time_last_update_utc;
+              }
+            }
+          }
+        } catch {
+          // Fallback provider
+          try {
+            const fallbackRes = await fetch('https://api.exchangerate-api.com/v4/latest/USD', { signal: AbortSignal.timeout(6000) });
+            if (fallbackRes.ok) {
+              const fbData: any = await fallbackRes.json();
+              if (fbData?.rates?.LKR) {
+                fetchedRate = Number(Number(fbData.rates.LKR).toFixed(2));
+              }
+            }
+          } catch {}
+        }
+
+        if (fetchedRate) {
+          await ratesCol.updateOne(
+            { base: 'USD', target: 'LKR' },
+            {
+              $set: {
+                base: 'USD',
+                target: 'LKR',
+                rate: fetchedRate,
+                date: fetchedDate,
+                lastUpdated: fetchedLastUpdated,
+                timestamp: now,
+              },
+            },
+            { upsert: true }
+          );
+
+          sendJson(res, 200, {
+            success: true,
+            base: 'USD',
+            target: 'LKR',
+            rate: fetchedRate,
+            date: fetchedDate,
+            lastUpdated: fetchedLastUpdated,
+            cached: false,
+          });
+          return true;
+        }
+      } catch (err) {
+        console.error('Error fetching dollar exchange rate:', err);
+      }
+
+      // If fetch failed, return stale cache if available
+      if (cached) {
+        sendJson(res, 200, {
+          success: true,
+          base: 'USD',
+          target: 'LKR',
+          rate: cached.rate,
+          date: cached.date,
+          lastUpdated: cached.lastUpdated,
+          cached: true,
+          stale: true,
+        });
+        return true;
+      }
+
+      // Default fallback if initial connect fails
+      sendJson(res, 200, {
+        success: true,
+        base: 'USD',
+        target: 'LKR',
+        rate: 331.88,
+        date: new Date().toISOString().split('T')[0],
+        lastUpdated: 'Estimated',
+        cached: false,
+      });
+      return true;
+    }
+
     // GET /api/users
     if (pathname === '/api/users' && method === 'GET') {
       const users = await usersCol.find({}).toArray();
