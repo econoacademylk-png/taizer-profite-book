@@ -1,4 +1,4 @@
-const CACHE_NAME = 'taizer-crypto-v2';
+const CACHE_NAME = 'taizer-crypto-v3';
 
 const STATIC_ASSETS = [
   '/',
@@ -45,6 +45,20 @@ self.addEventListener('fetch', (event) => {
 
   // Avoid intercepting chrome-extension or external analytics
   if (!url.origin.includes(self.location.origin)) return;
+
+  // NEVER intercept Vite dev server modules, node_modules, API, or HMR requests
+  if (
+    url.pathname.startsWith('/@') ||
+    url.pathname.startsWith('/node_modules') ||
+    url.pathname.startsWith('/src') ||
+    url.pathname.startsWith('/api') ||
+    url.search.includes('v=') ||
+    url.port === '3000' ||
+    url.hostname === 'localhost' ||
+    url.hostname === '127.0.0.1'
+  ) {
+    return;
+  }
 
   // For HTML navigation, always fetch fresh version from network first
   if (event.request.mode === 'navigate') {

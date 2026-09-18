@@ -33,6 +33,10 @@ export default defineConfig(() => {
       alias: {
         '@': path.resolve(import.meta.dirname || path.resolve(), '.'),
       },
+      dedupe: ['react', 'react-dom'],
+    },
+    optimizeDeps: {
+      include: ['react', 'react-dom', 'motion/react'],
     },
     server: {
       hmr: process.env.DISABLE_HMR !== 'true',
